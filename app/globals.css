@@ -521,3 +521,235 @@ body {
     font-size: 0.9rem;
   }
 }
+
+.sandbox-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--wf-panel);
+  border: 3px solid #111111;
+  padding: 0.5rem 0.75rem;
+  width: min(96vw, 1750px);
+}
+
+.sandbox-toolbar-gap {
+  flex: 1 1 1rem;
+}
+
+.sandbox-zoom {
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 3rem;
+  text-align: center;
+}
+
+.sandbox-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr) 320px;
+  gap: 0.75rem;
+  align-items: start;
+  width: min(96vw, 1750px);
+}
+
+.sandbox-layout-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background: #f5f5f5;
+}
+
+.sandbox-panel-hidden {
+  display: none;
+}
+
+.sandbox-panel {
+  background: var(--wf-panel);
+  border: 3px solid #111111;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0.7rem;
+  max-height: calc(100vh - 220px);
+  overflow: auto;
+}
+
+.sandbox-panel h3 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.sandbox-panel h4 {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  margin: 0.4rem 0 0 0;
+}
+
+.sandbox-group-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.sandbox-lib-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border: 2px solid #111111;
+  background: var(--wf-btn);
+  padding: 0.25rem 0.4rem;
+  text-align: left;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.sandbox-lib-item small {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.sandbox-lib-item[aria-pressed="true"] {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 2px var(--wf-blue);
+}
+
+.sandbox-board-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sandbox-board-scroll {
+  background: #f5f5f5;
+  border: 3px solid #111111;
+  overflow: auto;
+  max-height: calc(100vh - 260px);
+  padding: 0.6rem;
+}
+
+.sandbox-board-scroll-fullscreen {
+  max-height: 100vh;
+  height: 100vh;
+  border: none;
+  padding: 1rem;
+}
+
+.sandbox-board-hint {
+  background: var(--wf-panel);
+  border: 2px solid #111111;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.sandbox-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sandbox-detail h4 {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.sandbox-detail-empty {
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sandbox-powered {
+  border: 2px solid var(--wf-green);
+  background: #f6fff8;
+  padding: 0.25rem 0.4rem;
+  font-weight: 700;
+}
+
+.sandbox-unpowered {
+  border: 2px solid var(--wf-red);
+  background: #fff7f7;
+  padding: 0.25rem 0.4rem;
+  font-weight: 700;
+}
+
+.sandbox-pin-table td,
+.sandbox-pin-table th {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.35rem;
+}
+
+.sandbox-pin-table tr.is-power td {
+  background: #fff5f5;
+}
+
+.sandbox-pin-table tr.is-ground td {
+  background: #f7f7f7;
+}
+
+.sandbox-pin-table tr.is-input td {
+  background: #f6f9ff;
+}
+
+.sandbox-pin-table tr.is-output td {
+  background: #f6fff8;
+}
+
+.sandbox-pin-table tr.is-hover td {
+  box-shadow: inset 0 0 0 2px var(--wf-blue);
+}
+
+.sandbox-gate-row {
+  display: flex;
+  justify-content: space-between;
+  border: 2px solid #111111;
+  background: #ffffff;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.78rem;
+}
+
+.sandbox-monitor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  font-size: 0.72rem;
+}
+
+.sandbox-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.sandbox-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 1100px) {
+  .sandbox-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sandbox-panel {
+    max-height: none;
+  }
+
+  .sandbox-board-scroll {
+    max-height: 70vh;
+  }
+}
