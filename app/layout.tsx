@@ -30,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${pixelify.variable} h-full antialiased`}
     >
-      <body className="flex h-dvh min-h-dvh flex-col overflow-hidden bg-[#1a1726] font-mono text-[#292235]">
+      <body className="flex h-dvh min-h-dvh flex-col overflow-hidden bg-[#34304a] font-mono text-[#3b3452]">
         <GameProvider>{children}</GameProvider>
       </body>
     </html>

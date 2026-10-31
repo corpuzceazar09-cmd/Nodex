@@ -444,7 +444,7 @@ export default function Breadboard({
       ref={svgRef}
       viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`}
       width="100%"
-      style={{ display: "block", touchAction: "none", userSelect: "none", minWidth: BOARD_WIDTH }}
+      style={{ display: "block", touchAction: "none", userSelect: "none" }}
       onPointerDown={onBackgroundPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

@@ -6,6 +6,7 @@ import ScreenFrame from "@/components/ScreenFrame";
 import { sounds } from "@/lib/sound";
 import { CHIPS, CHIP_ORDER, type ChipId } from "@/lib/data/chips";
 import {
+  BOARD_WIDTH,
   chipPinHole,
   holeX,
   holeY,
@@ -768,6 +769,7 @@ export default function SandboxClient() {
   }
 
   return (
+    <div className={ui.page}>
     <ScreenFrame title="NODEX — BREADBOARD SANDBOX">
       <div className={ui.sandboxToolbar}>
         {(["select", "place", "wire", "delete"] as SandboxMode[]).map(
@@ -883,8 +885,9 @@ export default function SandboxClient() {
         <div className={ui.sandboxBoardWrap}>
           <div
             className={`${ui.sandboxBoardScroll} ${isFullscreen ? ui.sandboxBoardFullscreen : ""}`}
-            style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
           >
+            {/* zoom by resizing the board, so the scroll box keeps its size and scrolls the overflow */}
+            <div style={{ width: `${zoom * 100}%`, minWidth: BOARD_WIDTH * zoom }}>
             <Breadboard
               svgRef={svgRef}
               wires={sandbox.wires}
@@ -935,6 +938,7 @@ export default function SandboxClient() {
                 />
               ))}
             </Breadboard>
+            </div>
           </div>
           <div className={ui.sandboxBoardHint}>
             {mode === "place"
@@ -1212,5 +1216,6 @@ export default function SandboxClient() {
 
       {toast && <div className={ui.toast}>{toast}</div>}
     </ScreenFrame>
+    </div>
   );
 }

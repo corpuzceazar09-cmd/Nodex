@@ -7,16 +7,16 @@
 
 /* pixel-art skin: palette taken from the bedroom dialogue box */
 :root {
-  --wf-blue: #514097;
-  --wf-red: #e86858;
-  --wf-green: #78c850;
-  --wf-panel: #e8dfc8;
-  --wf-btn: #f4eddb;
+  --wf-blue: #6c5ccf;
+  --wf-red: #f2867a;
+  --wf-green: #8fd86a;
+  --wf-panel: #f4eedf;
+  --wf-btn: #fdf9ef;
 }
 
 body {
-  background: #1a1726;
-  color: #292235;
+  background: #34304a;
+  color: #3b3452;
   font-family: var(--font-pixel), ui-monospace, monospace;
 }
 
