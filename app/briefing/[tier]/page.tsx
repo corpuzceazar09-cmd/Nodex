@@ -6,6 +6,7 @@ import TruthTable from "@/components/TruthTable";
 import IcChip from "@/components/IcChip";
 import { GATES } from "@/lib/data/gates";
 import { TIERS, isTierId } from "@/lib/data/tiers";
+import { ui } from "@/lib/uiStyles";
 
 export default async function BriefingPage({
   params,
@@ -17,9 +18,9 @@ export default async function BriefingPage({
   const t = TIERS[tier];
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title={`DESCRIPTIONS OF BASIC GATES — ${t.name}`}>
-        <p className="wf-hint text-center">
+        <p className={`${ui.hint} text-center`}>
           {t.levelLabel} · These are the gates featured on your level path.
         </p>
 
@@ -33,7 +34,7 @@ export default async function BriefingPage({
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-lg font-black">{gate.name}</span>
-                  <span className="wf-chip text-[10px]">
+                  <span className={`${ui.chip} text-[10px]`}>
                     {gate.expression}
                   </span>
                 </div>
@@ -46,10 +47,10 @@ export default async function BriefingPage({
                     className="h-14 w-24 shrink-0"
                   />
                 </div>
-                <p className="wf-hint">{gate.ic}</p>
+                <p className={ui.hint}>{gate.ic}</p>
                 <Link
                   href={`/lab?gate=${gate.id}`}
-                  className="wf-btn self-start text-[10px]"
+                  className={`${ui.button} self-start text-[10px]`}
                 >
                   PRACTICE IN THE LAB ▶
                 </Link>
@@ -64,7 +65,7 @@ export default async function BriefingPage({
             >
               <span className="text-lg font-black">{topic.title}</span>
               <p className="text-xs leading-snug">{topic.body}</p>
-              <span className="wf-chip mt-auto self-start text-[10px]">
+              <span className={`${ui.chip} mt-auto self-start text-[10px]`}>
                 COVERED ON THIS PATH
               </span>
             </div>
@@ -72,10 +73,10 @@ export default async function BriefingPage({
         </div>
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
-          <Link href="/difficulty" className="wf-btn text-xs">
+          <Link href="/difficulty" className={`${ui.button} text-xs`}>
             ◀ CHANGE DIFFICULTY
           </Link>
-          <Link href={`/map/${tier}`} className="wf-btn wf-btn-primary">
+          <Link href={`/map/${tier}`} className={`${ui.button} ${ui.buttonPrimary}`}>
             BEGIN LEVEL PATH ▶
           </Link>
         </div>

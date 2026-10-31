@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ScreenFrame from "@/components/ScreenFrame";
+import { ui } from "@/lib/uiStyles";
 
 const RULES: [string, string][] = [
   ["PICK A MODE", "START begins a fresh run (tutorial first). CONTINUE jumps back to your current level path."],
@@ -14,9 +15,9 @@ const RULES: [string, string][] = [
 
 export default function HowToPlayPage() {
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="HOW TO PLAY">
-        <p className="wf-hint text-center">
+        <p className={`${ui.hint} text-center`}>
           Nodex teaches logic gates through short, game-style challenges.
         </p>
 
@@ -37,7 +38,7 @@ export default function HowToPlayPage() {
           ))}
         </ol>
 
-        <Link href="/menu" className="wf-btn wf-btn-primary mx-auto">
+        <Link href="/menu" className={`${ui.button} ${ui.buttonPrimary} mx-auto`}>
           GOT IT ▶
         </Link>
       </ScreenFrame>

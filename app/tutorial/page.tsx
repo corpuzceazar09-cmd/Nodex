@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ScreenFrame from "@/components/ScreenFrame";
+import { ui } from "@/lib/uiStyles";
 
 // Scripted tutorial: "SET UP THIS BUFFER". Every action advances the script;
 // the outcome is always the canned success message (no evaluation).
@@ -67,7 +68,7 @@ export default function TutorialPage() {
   }
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="TUTORIAL — SET UP THIS BUFFER">
         {phase === "intro" && (
           <>
@@ -79,11 +80,11 @@ export default function TutorialPage() {
               <b>a BUFFER</b>. A buffer simply passes its input through —
               nothing more.
             </p>
-            <p className="wf-hint text-center">
+            <p className={`${ui.hint} text-center`}>
               Blocks go into the three slots below, left to right. Ready?
             </p>
             <button
-              className="wf-btn wf-btn-primary mx-auto"
+              className={`${ui.button} ${ui.buttonPrimary} mx-auto`}
               onClick={() => setPhase("build")}
             >
               LET&apos;S BUILD ▶
@@ -98,9 +99,9 @@ export default function TutorialPage() {
               {slots.map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div
-                    className={`wf-slot ${s ? "wf-slot-filled" : ""} ${
+                    className={`${ui.slot} ${s ? ui.slotFilled : ""} ${
                       phase === "build" && i === targetSlot
-                        ? "wf-slot-target"
+                        ? ui.slotTarget
                         : ""
                     }`}
                     style={{ minWidth: "6.5rem" }}
@@ -129,8 +130,8 @@ export default function TutorialPage() {
                       draggable
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", b)}
                       onClick={() => onPalette(b)}
-                      className={`wf-block ${
-                        b === expected ? "wf-block-selected" : ""
+                      className={`${ui.block} ${
+                        b === expected ? ui.blockSelected : ""
                       }`}
                       style={{ minWidth: "5rem" }}
                     >
@@ -138,7 +139,7 @@ export default function TutorialPage() {
                     </div>
                   ))}
                 </div>
-                <p className="wf-hint text-center">
+                <p className={`${ui.hint} text-center`}>
                   {hint || `STEP: PLACE THE HIGHLIGHTED BLOCK INTO SLOT ${targetSlot + 1}.`}
                 </p>
               </>
@@ -146,15 +147,15 @@ export default function TutorialPage() {
 
             {phase === "table" && (
               <>
-                <p className="wf-hint text-center">
+                <p className={`${ui.hint} text-center`}>
                   NOW SET THE TRUTH TABLE — TAP EACH OUTPUT CELL TO TOGGLE 0 / 1.
                 </p>
                 <div className="mx-auto">
-                  <table className="wf-table">
+                  <table className={ui.table}>
                     <thead>
                       <tr>
                         <th>A</th>
-                        <th className="wf-table-out">OUT</th>
+                        <th className={ui.tableOutputHeader} data-output>OUT</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -162,7 +163,8 @@ export default function TutorialPage() {
                         <tr key={i}>
                           <td>{row[0]}</td>
                           <td
-                            className="wf-cell-clickable"
+                            className={ui.cellClickable}
+                            data-output
                             onClick={() => cycleCell(i)}
                           >
                             {cells[i] === null ? "–" : cells[i]}
@@ -186,11 +188,11 @@ export default function TutorialPage() {
                   <b>inputs in, output out</b>.
                 </p>
                 <div className="mx-auto">
-                  <table className="wf-table">
+                  <table className={ui.table}>
                     <thead>
                       <tr>
                         <th>A</th>
-                        <th className="wf-table-out">OUT</th>
+                        <th className={ui.tableOutputHeader} data-output>OUT</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -204,7 +206,7 @@ export default function TutorialPage() {
                   </table>
                 </div>
                 <button
-                  className="wf-btn wf-btn-primary"
+                  className={`${ui.button} ${ui.buttonPrimary}`}
                   onClick={() => router.push("/difficulty")}
                 >
                   CONTINUE ▶
@@ -216,7 +218,7 @@ export default function TutorialPage() {
 
         {phase !== "done" && phase !== "intro" && (
           <button
-            className="wf-btn mx-auto mt-auto text-xs"
+            className={`${ui.button} mx-auto mt-auto text-xs`}
             onClick={() => router.push("/difficulty")}
           >
             SKIP TUTORIAL ▶▶

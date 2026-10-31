@@ -11,6 +11,7 @@ import LiveTruthTable from "@/components/circuit/LiveTruthTable";
 import { useGame } from "@/components/GameProvider";
 import { GATES, GATE_ORDER, type GateId } from "@/lib/data/gates";
 import type { CircuitConnection, CircuitNode, CircuitStates } from "@/lib/logic";
+import { ui } from "@/lib/uiStyles";
 
 function buildCircuit(gateId: GateId) {
   const gate = GATES[gateId];
@@ -62,9 +63,9 @@ export default function LabClient({ initialGate }: { initialGate: GateId }) {
   const circuit = useMemo(() => buildCircuit(gateId), [gateId]);
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="LOGIC GATE LAB — INTERACTIVE">
-        <p className="wf-hint text-center">
+        <p className={`${ui.hint} text-center`}>
           Flip the switches and drag components: symbols, expressions, truth
           tables and live circuits for every gate.
         </p>
@@ -74,7 +75,7 @@ export default function LabClient({ initialGate }: { initialGate: GateId }) {
             {GATE_ORDER.map((id) => (
               <button
                 key={id}
-                className={`wf-btn ${id === gateId ? "wf-btn-primary" : ""}`}
+                className={`${ui.button} ${id === gateId ? ui.buttonPrimary : ""}`}
                 onClick={() => setGateId(id)}
               >
                 {GATES[id].name}
@@ -86,8 +87,8 @@ export default function LabClient({ initialGate }: { initialGate: GateId }) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-2xl font-black">{gate.name} GATE</span>
               <div className="flex gap-2">
-                <span className="wf-chip">{gate.category}</span>
-                <span className="wf-chip">{gate.expression}</span>
+                <span className={ui.chip}>{gate.category}</span>
+                <span className={ui.chip}>{gate.expression}</span>
               </div>
             </div>
 
@@ -104,8 +105,8 @@ export default function LabClient({ initialGate }: { initialGate: GateId }) {
             <div className="flex flex-col gap-1 border-l-4 border-black pl-3">
               <p className="text-xs font-black tracking-widest">HOW IT WORKS</p>
               <p className="text-sm">{gate.rule}</p>
-              <p className="wf-hint">ANALOGY: {gate.analogy}</p>
-              <p className="wf-hint">HINT: {gate.hint}</p>
+              <p className={ui.hint}>ANALOGY: {gate.analogy}</p>
+              <p className={ui.hint}>HINT: {gate.hint}</p>
             </div>
 
             <div className="flex flex-wrap items-start gap-6">
@@ -117,9 +118,9 @@ export default function LabClient({ initialGate }: { initialGate: GateId }) {
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-xs font-black tracking-widest">IC PINS</p>
-                <p className="wf-hint">{gate.ic}</p>
-                <p className="wf-hint">INPUTS: {gate.inputs}</p>
-                <p className="wf-hint">VCC: PIN 14 — GND: PIN 7</p>
+                <p className={ui.hint}>{gate.ic}</p>
+                <p className={ui.hint}>INPUTS: {gate.inputs}</p>
+                <p className={ui.hint}>VCC: PIN 14 — GND: PIN 7</p>
               </div>
             </div>
           </div>
@@ -139,13 +140,21 @@ export default function LabClient({ initialGate }: { initialGate: GateId }) {
               currentInputA={live["sw-a"] ?? 0}
               currentInputB={live["sw-b"] ?? 0}
             />
-            <p className="wf-hint max-w-[14rem]">
+            <p className={`${ui.hint} max-w-[14rem]`}>
               The highlighted row tracks the live switch inputs.
             </p>
           </div>
         </div>
 
+<<<<<<< Updated upstream
         <Link href="/menu" className="wf-btn mx-auto text-xs">
+=======
+        <Link href="/sandbox" className={`${ui.button} text-xs`}>
+          OPEN BREADBOARD SANDBOX
+        </Link>
+
+        <Link href="/menu" className={`${ui.button} mx-auto text-xs`}>
+>>>>>>> Stashed changes
           ◀ BACK TO MENU
         </Link>
       </ScreenFrame>

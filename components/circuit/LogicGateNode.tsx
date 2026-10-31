@@ -4,6 +4,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import GateSymbol from "@/components/GateSymbol";
 import type { GateId } from "@/lib/data/gates";
 import type { CircuitNode } from "@/lib/logic";
+import { ui } from "@/lib/uiStyles";
 
 const SYMBOL_IDS: Record<string, GateId> = {
   BUFFER: "buffer",
@@ -33,7 +34,7 @@ export default function LogicGateNode({
 
   return (
     <div
-      className="wf-cnode flex h-[88px] w-[148px] cursor-grab flex-col items-center justify-center p-1"
+      className={`${ui.circuitNode} flex h-[88px] w-[148px] cursor-grab flex-col items-center justify-center p-1`}
       style={{ left: node.x, top: node.y, opacity: isDragging ? 0.8 : 1, borderColor: isDragging ? "#1414d2" : "#111" }}
       onPointerDown={(e) => onStartDrag(node.id, e)}
     >

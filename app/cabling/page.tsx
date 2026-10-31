@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState, type PointerEvent } from "react";
 import ScreenFrame from "@/components/ScreenFrame";
 import { sounds } from "@/lib/sound";
+import { ui } from "@/lib/uiStyles";
 
 type Mode = "straight" | "crossover" | "rollover";
 type Wire = { name: string; color: string; striped: boolean };
@@ -123,25 +124,25 @@ export default function CablingPage() {
     setHint(`${WIRES[next].name}: connect left pin ${source} to right pin ${MAPS[mode][next]}. You can undo the last connection if that pin is occupied.`);
   }
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="NODEX — RJ45 CABLING CHALLENGE">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-black tracking-wider">ETHERNET WIRING LAB</h1>
             <p className="text-xs">Drag each colored wire from the left connector to a pin on the right.</p>
           </div>
-          <Link href="/menu" className="wf-btn text-xs">BACK TO MENU</Link>
+          <Link href="/menu" className={`${ui.button} text-xs`}>BACK TO MENU</Link>
         </div>
         <div className="flex flex-wrap gap-2" aria-label="Choose cable wiring mode">
           {(["straight", "crossover", "rollover"] as Mode[]).map((item) => (
-            <button key={item} type="button" className={`wf-btn text-xs ${mode === item ? "wf-btn-primary" : ""}`} onClick={() => selectMode(item)} aria-pressed={mode === item}>
+            <button key={item} type="button" className={`${ui.button} text-xs ${mode === item ? ui.buttonPrimary : ""}`} onClick={() => selectMode(item)} aria-pressed={mode === item}>
               {item === "straight" ? "STRAIGHT-THROUGH" : item.toUpperCase()}
             </button>
           ))}
         </div>
-        <div className="border-[3px] border-black bg-white p-2 sm:p-4">
+        <div className="min-w-0 overflow-x-auto border-[3px] border-black bg-white p-2 sm:p-4">
           <div className="mb-2 text-center text-sm font-black">{LABELS[mode]}</div>
-          <svg ref={svgRef} viewBox="0 0 820 420" className="w-full select-none" role="group" aria-label={`Interactive ${mode} wiring diagram. Drag colored wire endpoints from left to right.`} style={{ touchAction: "none" }}>
+          <svg ref={svgRef} viewBox="0 0 820 420" className="w-full min-w-[700px] select-none" role="group" aria-label={`Interactive ${mode} wiring diagram. Drag colored wire endpoints from left to right.`} style={{ touchAction: "none" }}>
             <defs>
               {WIRES.filter((w) => w.striped).map((w, i) => (
                 <pattern key={w.name} id={`cable-stripe-${i}`} width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -187,13 +188,13 @@ export default function CablingPage() {
           {checked && <span aria-live="polite">CORRECT: {correct} / 8</span>}
         </div>
         <div className="h-3 border border-black bg-white" aria-label={`${connections.length} of 8 wires connected`}>
-          <div className="h-full" style={{width:`${connections.length/8*100}%`,background:"var(--wf-blue)"}} />
+          <div className="h-full bg-[#1414d2]" style={{width:`${connections.length/8*100}%`}} />
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="wf-btn wf-btn-primary" onClick={checkWiring}>CHECK WIRING</button>
-          <button type="button" className="wf-btn" onClick={() => {setConnections((prev)=>prev.slice(0,-1));setChecked(false);setHint(null);sounds.playBtn();}} disabled={connections.length === 0}>UNDO LAST</button>
-          <button type="button" className="wf-btn" onClick={showHint}>HINT</button>
-          <button type="button" className="wf-btn" onClick={() => { reset(); sounds.playBtn(); }}>RESET</button>
+          <button type="button" className={`${ui.button} ${ui.buttonPrimary}`} onClick={checkWiring}>CHECK WIRING</button>
+          <button type="button" className={ui.button} onClick={() => {setConnections((prev)=>prev.slice(0,-1));setChecked(false);setHint(null);sounds.playBtn();}} disabled={connections.length === 0}>UNDO LAST</button>
+          <button type="button" className={ui.button} onClick={showHint}>HINT</button>
+          <button type="button" className={ui.button} onClick={() => { reset(); sounds.playBtn(); }}>RESET</button>
         </div>
         <div aria-live="polite" className="border-[2px] border-black bg-white p-3 text-sm font-bold">
           {complete ? "PERFECT! All 8 pins are wired correctly. Choose another mode to continue practicing." :

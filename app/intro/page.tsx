@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ScreenFrame from "@/components/ScreenFrame";
+import { ui } from "@/lib/uiStyles";
 
 const LINES = [
   "PROF. LOGIC: Welcome, rookie! I've been waiting for you.",
@@ -40,7 +41,7 @@ export default function IntroPage() {
   }
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="Nodex — INTRO">
         <div className="flex flex-1 flex-wrap items-stretch gap-4">
           {/* guide character (placeholder pixel NPC) */}
@@ -59,19 +60,19 @@ export default function IntroPage() {
 
           {/* dialogue box */}
           <div className="flex min-w-[14rem] flex-1 flex-col justify-between gap-4">
-            <div className="wf-dialogue wf-cursor">
+            <div className={`${ui.dialogue} ${ui.cursor}`}>
               {line.slice(0, shown)}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <button className="wf-btn" onClick={() => router.push("/menu")}>
+              <button className={ui.button} onClick={() => router.push("/menu")}>
                 SKIP ▶▶
               </button>
               {finished ? (
-                <Link href="/menu" className="wf-btn wf-btn-primary">
+                <Link href="/menu" className={`${ui.button} ${ui.buttonPrimary}`}>
                   START ADVENTURE ▶
                 </Link>
               ) : (
-                <button className="wf-btn wf-btn-primary" onClick={next}>
+                <button className={`${ui.button} ${ui.buttonPrimary}`} onClick={next}>
                   {typing ? "..." : "NEXT ▶"}
                 </button>
               )}

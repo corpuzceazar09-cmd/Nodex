@@ -10,6 +10,7 @@ import { getLevel, type BlockKind, type Level } from "@/lib/data/levels";
 import { TIERS } from "@/lib/data/tiers";
 import { failureLine, successLine } from "@/lib/data/copy";
 import { sounds } from "@/lib/sound";
+import { ui } from "@/lib/uiStyles";
 
 type Phase = "answering" | "correct" | "wrong" | "reward";
 
@@ -131,17 +132,17 @@ function LevelFlow({ level }: { level: Level }) {
   /* ---------- render ---------- */
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame
         title={`${level.title}${level.isFinal ? " — FINAL CHALLENGE" : ""}`}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href={`/map/${level.tierId}`} className="wf-btn text-xs">
+          <Link href={`/map/${level.tierId}`} className={`${ui.button} text-xs`}>
             ◀ LEVEL MAP
           </Link>
           <div className="flex gap-2">
-            <span className="wf-chip">{tier.name}</span>
-            <span className="wf-chip wf-chip-streak">+{level.rewardXp} XP</span>
+            <span className={ui.chip}>{tier.name}</span>
+            <span className={`${ui.chip} ${ui.chipStreak}`}>+{level.rewardXp} XP</span>
           </div>
         </div>
 
@@ -163,7 +164,7 @@ function LevelFlow({ level }: { level: Level }) {
               {challenge.choices.map((c, i) => (
                 <button
                   key={c}
-                  className={`wf-btn ${selectedChoice === i ? "wf-btn-primary" : ""}`}
+                  className={`${ui.button} ${selectedChoice === i ? ui.buttonPrimary : ""}`}
                   onClick={() => setSelectedChoice(i)}
                 >
                   {c}
@@ -171,7 +172,7 @@ function LevelFlow({ level }: { level: Level }) {
               ))}
             </div>
             <button
-              className="wf-btn wf-btn-green mx-auto"
+              className={`${ui.button} ${ui.buttonGreen} mx-auto`}
               disabled={selectedChoice === null}
               onClick={check}
             >
@@ -190,7 +191,7 @@ function LevelFlow({ level }: { level: Level }) {
                   draggable
                   onDragStart={(e) => e.dataTransfer.setData("text/plain", b)}
                   onClick={() => setPicked(picked === b ? null : b)}
-                  className={`wf-block ${picked === b ? "wf-block-selected" : ""}`}
+                  className={`${ui.block} ${picked === b ? ui.blockSelected : ""}`}
                   style={{ minWidth: "5rem" }}
                 >
                   {b}
@@ -203,7 +204,7 @@ function LevelFlow({ level }: { level: Level }) {
               {slots.map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div
-                    className={`wf-slot ${s ? "wf-slot-filled" : ""}`}
+                    className={`${ui.slot} ${s ? ui.slotFilled : ""}`}
                     style={{ minWidth: "6.5rem" }}
                     onClick={() => onSlotClick(i)}
                     onDragOver={(e) => e.preventDefault()}
@@ -224,13 +225,13 @@ function LevelFlow({ level }: { level: Level }) {
 
             {/* truth table to fill in */}
             <div className="mx-auto">
-              <table className="wf-table">
+              <table className={ui.table}>
                 <thead>
                   <tr>
                     {inputHeaders.map((h) => (
                       <th key={h}>{h}</th>
                     ))}
-                    <th className="wf-table-out">OUT</th>
+                    <th className={ui.tableOutputHeader} data-output>OUT</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,7 +241,7 @@ function LevelFlow({ level }: { level: Level }) {
                         <td key={j}>{v}</td>
                       ))}
                       <td
-                        className="wf-cell-clickable"
+                        className={ui.cellClickable}
                         onClick={() => cycleCell(i)}
                       >
                         {cells[i] === null ? "–" : cells[i]}
@@ -251,13 +252,13 @@ function LevelFlow({ level }: { level: Level }) {
               </table>
             </div>
 
-            <p className="wf-hint text-center">
+            <p className={`${ui.hint} text-center`}>
               TAP A BLOCK, THEN TAP A SLOT (OR DRAG IT) · TAP OUTPUT CELLS TO
               TOGGLE 0 / 1 · TAP A FILLED SLOT TO CLEAR IT
             </p>
 
             <button
-              className="wf-btn wf-btn-green mx-auto"
+              className={`${ui.button} ${ui.buttonGreen} mx-auto`}
               disabled={!buildComplete}
               onClick={check}
             >
@@ -269,15 +270,15 @@ function LevelFlow({ level }: { level: Level }) {
 
       {/* ---------- feedback: correct ---------- */}
       {phase === "correct" && (
-        <div className="wf-overlay">
-          <div className="wf-modal wf-modal-correct">
+        <div className={ui.overlay}>
+          <div className={`${ui.modal} ${ui.modalCorrect}`}>
             <div className="text-3xl font-black">✔ CORRECT!</div>
             <div className="w-full border-4 border-black bg-[#6fd97f] p-2 font-black">
               {successLine(level.index)}
             </div>
             <p className="text-sm leading-relaxed">{challenge.explanation}</p>
             <button
-              className="wf-btn wf-btn-green"
+              className={`${ui.button} ${ui.buttonGreen}`}
               onClick={() => {
                 sounds.playFanfare();
                 setPhase("reward");
@@ -291,8 +292,8 @@ function LevelFlow({ level }: { level: Level }) {
 
       {/* ---------- feedback: incorrect ---------- */}
       {phase === "wrong" && (
-        <div className="wf-overlay">
-          <div className="wf-modal wf-modal-wrong">
+        <div className={ui.overlay}>
+          <div className={`${ui.modal} ${ui.modalWrong}`}>
             <div className="text-3xl font-black">✘ NOT QUITE</div>
             <div className="w-full border-4 border-black bg-[#ff5f5f] p-2 font-black">
               {failureLine(level.index)}
@@ -300,7 +301,7 @@ function LevelFlow({ level }: { level: Level }) {
             <p className="text-sm leading-relaxed">{challenge.explanation}</p>
             <div className="flex w-full gap-3">
               <button
-                className="wf-btn flex-1"
+                className={`${ui.button} flex-1`}
                 onClick={() => {
                   setPhase("answering");
                   if (challenge.kind === "mc") setSelectedChoice(null);
@@ -309,7 +310,7 @@ function LevelFlow({ level }: { level: Level }) {
                 TRY AGAIN
               </button>
               <button
-                className="wf-btn flex-1 text-xs"
+                className={`${ui.button} flex-1 text-xs`}
                 onClick={() => router.push(`/map/${level.tierId}`)}
               >
                 SKIP LEVEL ▶▶
@@ -321,8 +322,8 @@ function LevelFlow({ level }: { level: Level }) {
 
       {/* ---------- reward modal ---------- */}
       {phase === "reward" && (
-        <div className="wf-overlay">
-          <div className="wf-modal">
+        <div className={ui.overlay}>
+          <div className={ui.modal}>
             <div className="text-3xl font-black">CONGRATS!</div>
             <div className="w-full border-4 border-black bg-[#ff5f5f] p-3 font-black">
               {result?.newlyCompleted
@@ -330,14 +331,14 @@ function LevelFlow({ level }: { level: Level }) {
                 : "REPLAY — no new XP awarded."}
             </div>
             <div className="flex flex-wrap justify-center gap-2">
-              <span className="wf-chip">XP {xp}</span>
-              <span className="wf-chip wf-chip-streak">
+              <span className={ui.chip}>XP {xp}</span>
+              <span className={`${ui.chip} ${ui.chipStreak}`}>
                 +{result?.xpAwarded ?? 0} XP
               </span>
-              <span className="wf-chip">
+              <span className={ui.chip}>
                 {"★".repeat(wrongCount === 0 ? 3 : wrongCount === 1 ? 2 : 1)}
               </span>
-              <span className="wf-chip wf-chip-streak">STREAK {streak}</span>
+              <span className={`${ui.chip} ${ui.chipStreak}`}>STREAK {streak}</span>
             </div>
             {result && result.newBadges.length > 0 && (
               <div className="w-full border-4 border-black bg-[#6fd97f] p-2 text-sm font-black">
@@ -346,7 +347,7 @@ function LevelFlow({ level }: { level: Level }) {
               </div>
             )}
             <button
-              className="wf-btn wf-btn-primary"
+              className={`${ui.button} ${ui.buttonPrimary}`}
               onClick={rewardContinue}
             >
               CONTINUE ▶

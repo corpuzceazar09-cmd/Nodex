@@ -9,6 +9,7 @@ import { useGame } from "@/components/GameProvider";
 import { TIERS, isTierId } from "@/lib/data/tiers";
 import { levelsForTier } from "@/lib/data/levels";
 import { LOCKED_TOAST } from "@/lib/data/copy";
+import { ui } from "@/lib/uiStyles";
 
 function LockIcon() {
   return (
@@ -65,16 +66,16 @@ export default function MapPage({
   }
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title={`${t.name} — LEVEL PATH`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-2">
-            <span className="wf-chip self-start">{t.levelLabel}</span>
+            <span className={`${ui.chip} self-start`}>{t.levelLabel}</span>
             <span className="text-sm font-black">
               PROGRESS: {doneCount}/{levels.length}
             </span>
-            <div className="wf-progress w-56">
-              <div className="wf-progress-fill" style={{ width: `${pct}%` }} />
+            <div className={`${ui.progress} w-56`}>
+              <div className={ui.progressFill} style={{ width: `${pct}%` }} />
             </div>
           </div>
           <div className="w-64 max-w-full">
@@ -88,12 +89,17 @@ export default function MapPage({
             const done = completed[tier].includes(level.id);
             const unlocked = isUnlocked(tier, i);
             const cls = [
-              "wf-node",
-              level.isFinal ? "wf-node-final" : "",
-              done ? "wf-node-done" : unlocked ? "wf-node-current" : "wf-node-locked",
-            ]
-              .filter(Boolean)
-              .join(" ");
+              ui.node,
+              level.isFinal
+                ? ui.nodeFinal
+                : done
+                  ? ui.nodeDone
+                  : unlocked
+                    ? ui.nodeCurrent
+                    : ui.nodeLocked,
+              level.isFinal && !done && unlocked ? ui.nodeCurrentEffect : "",
+              level.isFinal && !unlocked ? ui.nodeLockedEffect : "",
+            ].filter(Boolean).join(" ");
             return (
               <button
                 key={level.id}
@@ -108,22 +114,22 @@ export default function MapPage({
           })}
         </div>
 
-        <p className="wf-hint text-center">
+        <p className={`${ui.hint} text-center`}>
           ★ = COMPLETED · PULSING = YOUR NEXT LEVEL · {`▣`} = FINAL CHALLENGE
           (150 XP)
         </p>
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
-          <Link href="/difficulty" className="wf-btn text-xs">
+          <Link href="/difficulty" className={`${ui.button} text-xs`}>
             ◀ CHANGE DIFFICULTY
           </Link>
-          <Link href="/menu" className="wf-btn text-xs">
+          <Link href="/menu" className={`${ui.button} text-xs`}>
             MAIN MENU
           </Link>
         </div>
       </ScreenFrame>
 
-      {toast && <div className="wf-toast">{toast}</div>}
+      {toast && <div className={ui.toast}>{toast}</div>}
     </div>
   );
 }

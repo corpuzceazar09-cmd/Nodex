@@ -18,6 +18,7 @@ import {
   type CircuitStates,
 } from "@/lib/logic";
 import { sounds } from "@/lib/sound";
+import { ui } from "@/lib/uiStyles";
 
 const SIZE: Record<CircuitNode["type"], { w: number; h: number }> = {
   switch: { w: 136, h: 72 },
@@ -126,23 +127,24 @@ export default function MovableWorkbench({
   }, [initialNodes]);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex min-w-0 flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <span className="wf-hint">
+        <span className={ui.hint}>
           Grab &amp; drag any component. Click a switch to flip it.
         </span>
-        <button type="button" className="wf-btn !py-1 !text-[11px]" onClick={resetLayout}>
+        <button type="button" className={`${ui.button} !py-1 !text-[11px]`} onClick={resetLayout}>
           ⟲ RESET LAYOUT
         </button>
       </div>
-      <div
-        ref={containerRef}
-        className="wf-workbench"
-        style={{ height }}
-        onPointerMove={moveDrag}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-      >
+      <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
+        <div
+          ref={containerRef}
+          className={`${ui.workbench} min-w-[700px]`}
+          style={{ height }}
+          onPointerMove={moveDrag}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+        >
         <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full">
           {connections.map((conn, idx) => {
             const from = nodes.find((n) => n.id === conn.from);
@@ -192,6 +194,7 @@ export default function MovableWorkbench({
             />
           );
         })}
+        </div>
       </div>
     </div>
   );

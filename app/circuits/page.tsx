@@ -9,6 +9,7 @@ import { CIRCUITS } from "@/lib/data/circuits";
 import { evaluateCircuit, type CircuitStates } from "@/lib/logic";
 import { useGame } from "@/components/GameProvider";
 import { sounds } from "@/lib/sound";
+import { ui } from "@/lib/uiStyles";
 
 const OPTIONS = ["OFF — output 0", "ON — output 1"];
 
@@ -59,10 +60,10 @@ export default function CircuitsPage() {
   }
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="CIRCUIT CHALLENGES">
         <PlayerPanel />
-        <p className="wf-hint text-center">
+        <p className={`${ui.hint} text-center`}>
           Read full multi-gate circuits, predict the output, then experiment on
           the movable workbench.
         </p>
@@ -71,8 +72,8 @@ export default function CircuitsPage() {
           {CIRCUITS.map((c, i) => (
             <button
               key={c.id}
-              className={`wf-btn !py-1 !text-[11px] ${
-                i === index ? "wf-btn-primary" : ""
+              className={`${ui.button} !py-1 !text-[11px] ${
+                i === index ? ui.buttonPrimary : ""
               }`}
               onClick={() => goTo(i)}
             >
@@ -81,7 +82,7 @@ export default function CircuitsPage() {
             </button>
           ))}
         </div>
-        <p className="wf-hint">
+        <p className={ui.hint}>
           PROGRESS: {doneCount} / {CIRCUITS.length} CIRCUITS SOLVED
         </p>
 
@@ -91,8 +92,8 @@ export default function CircuitsPage() {
               {index + 1}. {circuit.title}
             </span>
             <div className="flex gap-2">
-              <span className="wf-chip">{circuit.concept}</span>
-              <span className="wf-chip">+{circuit.rewardXp} XP</span>
+              <span className={ui.chip}>{circuit.concept}</span>
+              <span className={ui.chip}>+{circuit.rewardXp} XP</span>
             </div>
           </div>
 
@@ -106,7 +107,7 @@ export default function CircuitsPage() {
             height={400}
           />
 
-          <p className="wf-hint">
+          <p className={ui.hint}>
             LIVE OUTPUT: the target LED currently reads{" "}
             <b>{live[circuit.targetLedId] ?? 0}</b> with the shown switches.
           </p>
@@ -117,9 +118,9 @@ export default function CircuitsPage() {
             {OPTIONS.map((label, i) => (
               <button
                 key={label}
-                className={`wf-btn ${
-                  choice === i && status === "correct" ? "wf-btn-green" : ""
-                } ${choice === i && status === "wrong" ? "wf-btn-red" : ""}`}
+                className={`${ui.button} ${
+                  choice === i && status === "correct" ? ui.buttonGreen : ""
+                } ${choice === i && status === "wrong" ? ui.buttonRed : ""}`}
                 onClick={() => pick(i)}
               >
                 {label}
@@ -129,13 +130,13 @@ export default function CircuitsPage() {
 
           <div className="flex flex-wrap gap-2">
             <button
-              className="wf-btn !py-1 !text-[11px]"
+              className={`${ui.button} !py-1 !text-[11px]`}
               onClick={() => setShowHint((v) => !v)}
             >
               ? HINT
             </button>
             <button
-              className="wf-btn !py-1 !text-[11px]"
+              className={`${ui.button} !py-1 !text-[11px]`}
               onClick={() => goTo((index + 1) % CIRCUITS.length)}
             >
               NEXT CIRCUIT ▶
@@ -143,7 +144,7 @@ export default function CircuitsPage() {
           </div>
 
           {showHint && status !== "correct" && (
-            <p className="wf-hint border-l-4 border-black pl-3">
+            <p className={`${ui.hint} border-l-4 border-black pl-3`}>
               {circuit.hint}
             </p>
           )}
@@ -161,7 +162,7 @@ export default function CircuitsPage() {
           )}
         </div>
 
-        <Link href="/menu" className="wf-btn wf-btn-primary mx-auto">
+        <Link href="/menu" className={`${ui.button} ${ui.buttonPrimary} mx-auto`}>
           ◀ BACK TO MENU
         </Link>
       </ScreenFrame>

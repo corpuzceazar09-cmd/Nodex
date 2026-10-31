@@ -6,6 +6,7 @@ import { useGame } from "@/components/GameProvider";
 import Link from "next/link";
 import { GATES } from "@/lib/data/gates";
 import { TIER_ORDER, TIERS, type TierId } from "@/lib/data/tiers";
+import { ui } from "@/lib/uiStyles";
 
 export default function DifficultyPage() {
   const { selectTier } = useGame();
@@ -17,12 +18,12 @@ export default function DifficultyPage() {
   }
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="SELECT DIFFICULTY">
         <p className="text-center font-black tracking-wider">
           LEVELS OF DIFFICULTY
         </p>
-        <p className="wf-hint text-center">
+        <p className={`${ui.hint} text-center`}>
           Pick a tier — you&apos;ll see the gates it covers before the path
           unlocks.
         </p>
@@ -36,23 +37,23 @@ export default function DifficultyPage() {
                 onClick={() => pick(id)}
                 className="flex cursor-pointer flex-col items-start gap-3 border-[3px] border-black bg-white p-4 text-left transition-colors hover:bg-[#e8e8ff]"
               >
-                <span className="wf-chip">{tier.levelLabel}</span>
+                <span className={ui.chip}>{tier.levelLabel}</span>
                 <span className="text-lg font-black">{tier.name}</span>
                 <span className="text-sm leading-snug">{tier.blurb}</span>
                 <span className="flex flex-wrap gap-1">
                   {tier.gateIds.map((g) => (
-                    <span key={g} className="wf-chip text-[10px]">
+                    <span key={g} className={`${ui.chip} text-[10px]`}>
                       {GATES[g].name}
                     </span>
                   ))}
                 </span>
-                <span className="wf-btn mt-auto w-full">SELECT ▶</span>
+                <span className={`${ui.button} mt-auto w-full`}>SELECT ▶</span>
               </button>
             );
           })}
         </div>
 
-        <Link href="/menu" className="wf-btn mx-auto text-xs">
+        <Link href="/menu" className={`${ui.button} mx-auto text-xs`}>
           ◀ BACK TO MENU
         </Link>
       </ScreenFrame>

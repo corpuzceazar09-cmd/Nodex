@@ -2,6 +2,7 @@
 
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { CircuitNode } from "@/lib/logic";
+import { ui } from "@/lib/uiStyles";
 
 export type NodeHandlers = {
   onToggle: (nodeId: string) => void;
@@ -19,7 +20,7 @@ export default function InputSwitchNode({
   const on = node.state === 1;
   return (
     <div
-      className="wf-cnode flex h-[72px] w-[136px] cursor-grab flex-col justify-between p-2"
+      className={`${ui.circuitNode} flex h-[72px] w-[136px] cursor-grab flex-col justify-between p-2`}
       style={{ left: node.x, top: node.y, opacity: isDragging ? 0.8 : 1, borderColor: isDragging ? "#1414d2" : "#111" }}
       onPointerDown={(e) => onStartDrag(node.id, e)}
     >
@@ -35,7 +36,7 @@ export default function InputSwitchNode({
       </div>
       <button
         type="button"
-        className="wf-btn !py-0.5 !text-[11px]"
+        className={`${ui.button} !py-0.5 !text-[11px]`}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={() => onToggle(node.id)}
       >

@@ -6,6 +6,7 @@ import { use, useEffect } from "react";
 import ScreenFrame from "@/components/ScreenFrame";
 import { useGame } from "@/components/GameProvider";
 import { TIER_ORDER, TIERS, isTierId } from "@/lib/data/tiers";
+import { ui } from "@/lib/uiStyles";
 
 export default function CompletePage({
   params,
@@ -30,7 +31,7 @@ export default function CompletePage({
   const lastTier = idx === TIER_ORDER.length - 1;
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title={`${t.name} TIER COMPLETE`}>
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="flex h-24 w-24 items-center justify-center border-4 border-black bg-[#6fd97f] text-5xl font-black">
@@ -46,16 +47,16 @@ export default function CompletePage({
           </p>
 
           <div className="flex flex-wrap justify-center gap-2">
-            <span className="wf-chip">TOTAL XP {xp}</span>
-            <span className="wf-chip wf-chip-streak">STREAK {streak}</span>
-            <span className="wf-chip">10/10 NODES ★</span>
+            <span className={ui.chip}>TOTAL XP {xp}</span>
+            <span className={`${ui.chip} ${ui.chipStreak}`}>STREAK {streak}</span>
+            <span className={ui.chip}>10/10 NODES ★</span>
           </div>
         </div>
 
         <div className="mt-auto flex flex-col items-center gap-3">
           {nextTier && (
             <button
-              className="wf-btn wf-btn-primary"
+              className={`${ui.button} ${ui.buttonPrimary}`}
               onClick={() => {
                 selectTier(nextTier.id);
                 router.push(`/briefing/${nextTier.id}`);
@@ -65,10 +66,10 @@ export default function CompletePage({
             </button>
           )}
           <div className="flex flex-wrap justify-center gap-3">
-            <Link href={`/map/${tier}`} className="wf-btn text-xs">
+            <Link href={`/map/${tier}`} className={`${ui.button} text-xs`}>
               REPLAY PATH
             </Link>
-            <Link href="/menu" className="wf-btn text-xs">
+            <Link href="/menu" className={`${ui.button} text-xs`}>
               MAIN MENU
             </Link>
           </div>

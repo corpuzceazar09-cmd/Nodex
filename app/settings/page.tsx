@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ScreenFrame from "@/components/ScreenFrame";
 import { useGame } from "@/components/GameProvider";
+<<<<<<< Updated upstream
+=======
+import { getSavedTheme, saveTheme } from "@/utils/themeStorage";
+import { BEDROOM_THEMES } from "@/data/bedroomThemes";
+import { ui } from "@/lib/uiStyles";
+>>>>>>> Stashed changes
 
 function ToggleRow({
   label,
@@ -23,7 +29,7 @@ function ToggleRow({
         {note && <span className="block text-xs opacity-70">{note}</span>}
       </span>
       <button
-        className={`wf-btn w-24 ${value ? "wf-btn-green" : ""}`}
+        className={`${ui.button} w-24 ${value ? ui.buttonGreen : ""}`}
         onClick={onToggle}
         aria-pressed={!value}
       >
@@ -50,14 +56,37 @@ export default function SettingsPage() {
   }, [msg]);
 
   return (
-    <div className="wf-page">
+    <div className={ui.page}>
       <ScreenFrame title="SETTINGS">
-        <p className="wf-hint text-center">
+        <p className={`${ui.hint} text-center`}>
           Settings and progress are saved to this browser and persist across
           reloads.
         </p>
 
         <div className="flex flex-col gap-3">
+<<<<<<< Updated upstream
+=======
+          <div className="border-[3px] border-black bg-white p-3">
+            <b>BEDROOM APPEARANCE</b>
+            <p className="mb-3 text-xs opacity-70">
+              Choose your bedroom theme.
+            </p>
+            <div className="flex gap-2">
+              {Object.values(BEDROOM_THEMES).map((theme) => (
+                <button
+                  key={theme.id}
+                  className={`${ui.button} flex-1 ${bedroomTheme === theme.id ? ui.buttonPrimary : ""}`}
+                  onClick={() => handleThemeChange(theme.id)}
+                >
+                  {theme.name}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs opacity-60">
+              {(BEDROOM_THEMES as any)[bedroomTheme]?.description}
+            </p>
+          </div>
+>>>>>>> Stashed changes
           <ToggleRow
             label="SOUND EFFECTS"
             value={!soundMuted}
@@ -77,7 +106,11 @@ export default function SettingsPage() {
               a fresh adventure.
             </p>
             <button
+<<<<<<< Updated upstream
               className="wf-btn wf-btn-red w-full"
+=======
+              className={`${ui.button} ${ui.buttonRed} mb-2 w-full`}
+>>>>>>> Stashed changes
               onClick={() => {
                 resetProgress();
                 setMsg("PROGRESS RESET — BACK TO LEVEL 1!");
@@ -85,15 +118,29 @@ export default function SettingsPage() {
             >
               RESET PROGRESS
             </button>
+<<<<<<< Updated upstream
+=======
+            <button
+              className={`${ui.button} ${ui.buttonRed} w-full`}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("nodex_tutorial_completed");
+                  setMsg("TUTORIAL RESET - GO TO BEDROOM!");
+                }
+              }}
+            >
+              RESET TUTORIAL
+            </button>
+>>>>>>> Stashed changes
           </div>
         </div>
 
-        <Link href="/menu" className="wf-btn wf-btn-primary mx-auto">
+        <Link href="/menu" className={`${ui.button} ${ui.buttonPrimary} mx-auto`}>
           ◀ BACK TO MENU
         </Link>
       </ScreenFrame>
 
-      {msg && <div className="wf-toast">{msg}</div>}
+      {msg && <div className={ui.toast}>{msg}</div>}
     </div>
   );
 }
