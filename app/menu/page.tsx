@@ -27,35 +27,22 @@ export default function MenuPage() {
             <Link href="/tutorial" className={`${ui.button} ${ui.buttonPrimary}`}>
               START
             </Link>
-<<<<<<< Updated upstream
-            <Link href={continueHref} className="wf-btn">
-              CONTINUE
-            </Link>
-            <Link href="/circuits" className="wf-btn">
-              CIRCUIT CHALLENGES
-            </Link>
-            <Link href="/cabling" className="wf-btn">
-              RJ45 CABLING GAME
-            </Link>
-            <Link href="/lab" className="wf-btn">
-=======
             <Link href="/bedroom" className={ui.button}>
               RETURN TO BEDROOM
             </Link>
             <Link href={continueHref} className={ui.button}>
               CONTINUE
             </Link>
-        <Link href="/circuits" className={ui.button}>
-          CIRCUIT CHALLENGES
-        </Link>
-        <Link href="/sandbox" className={ui.button}>
-          BREADBOARD SANDBOX
-        </Link>
-        <Link href="/cabling" className={ui.button}>
-          RJ45 CABLING GAME
-        </Link>
+            <Link href="/circuits" className={ui.button}>
+              CIRCUIT CHALLENGES
+            </Link>
+            <Link href="/sandbox" className={ui.button}>
+              BREADBOARD SANDBOX
+            </Link>
+            <Link href="/cabling" className={ui.button}>
+              RJ45 CABLING GAME
+            </Link>
             <Link href="/lab" className={ui.button}>
->>>>>>> Stashed changes
               LOGIC GATE LAB
             </Link>
             <div className="grid grid-cols-2 gap-3">

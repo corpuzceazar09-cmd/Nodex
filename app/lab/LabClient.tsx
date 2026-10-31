@@ -146,15 +146,11 @@ export default function LabClient({ initialGate }: { initialGate: GateId }) {
           </div>
         </div>
 
-<<<<<<< Updated upstream
-        <Link href="/menu" className="wf-btn mx-auto text-xs">
-=======
         <Link href="/sandbox" className={`${ui.button} text-xs`}>
           OPEN BREADBOARD SANDBOX
         </Link>
 
         <Link href="/menu" className={`${ui.button} mx-auto text-xs`}>
->>>>>>> Stashed changes
           ◀ BACK TO MENU
         </Link>
       </ScreenFrame>

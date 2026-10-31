@@ -2,7 +2,7 @@
 
 @theme inline {
   --font-mono: var(--font-geist-mono);
-<<<<<<< Updated upstream
+  --font-sans: var(--font-geist-sans);
 }
 
 body {
@@ -509,7 +509,3 @@ body {
     font-size: 0.9rem;
   }
 }
-=======
-  --font-sans: var(--font-geist-sans);
-}
->>>>>>> Stashed changes

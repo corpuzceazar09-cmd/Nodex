@@ -1,15 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import ScreenFrame from "@/components/ScreenFrame";
 import { useGame } from "@/components/GameProvider";
-<<<<<<< Updated upstream
-=======
 import { getSavedTheme, saveTheme } from "@/utils/themeStorage";
 import { BEDROOM_THEMES } from "@/data/bedroomThemes";
 import { ui } from "@/lib/uiStyles";
->>>>>>> Stashed changes
+
+const BEDROOM_THEME_CHANGE_EVENT = "nodex:bedroom-theme-change";
+
+function isBedroomTheme(theme: string): theme is keyof typeof BEDROOM_THEMES {
+  return Object.prototype.hasOwnProperty.call(BEDROOM_THEMES, theme);
+}
+
+function subscribeToBedroomTheme(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(BEDROOM_THEME_CHANGE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(BEDROOM_THEME_CHANGE_EVENT, onChange);
+  };
+}
+
+function getBedroomThemeSnapshot(): keyof typeof BEDROOM_THEMES {
+  const savedTheme = getSavedTheme();
+  return isBedroomTheme(savedTheme) ? savedTheme : "classic";
+}
+
+function getDefaultBedroomThemeSnapshot(): keyof typeof BEDROOM_THEMES {
+  return "classic";
+}
 
 function ToggleRow({
   label,
@@ -48,12 +69,23 @@ export default function SettingsPage() {
     setMusicMuted,
   } = useGame();
   const [msg, setMsg] = useState<string | null>(null);
+  const bedroomTheme = useSyncExternalStore(
+    subscribeToBedroomTheme,
+    getBedroomThemeSnapshot,
+    getDefaultBedroomThemeSnapshot,
+  );
 
   useEffect(() => {
     if (!msg) return;
     const t = setTimeout(() => setMsg(null), 2400);
     return () => clearTimeout(t);
   }, [msg]);
+
+  const handleThemeChange = (theme: keyof typeof BEDROOM_THEMES) => {
+    saveTheme(theme);
+    window.dispatchEvent(new Event(BEDROOM_THEME_CHANGE_EVENT));
+    setMsg("BEDROOM THEME UPDATED!");
+  };
 
   return (
     <div className={ui.page}>
@@ -64,8 +96,6 @@ export default function SettingsPage() {
         </p>
 
         <div className="flex flex-col gap-3">
-<<<<<<< Updated upstream
-=======
           <div className="border-[3px] border-black bg-white p-3">
             <b>BEDROOM APPEARANCE</b>
             <p className="mb-3 text-xs opacity-70">
@@ -76,17 +106,20 @@ export default function SettingsPage() {
                 <button
                   key={theme.id}
                   className={`${ui.button} flex-1 ${bedroomTheme === theme.id ? ui.buttonPrimary : ""}`}
-                  onClick={() => handleThemeChange(theme.id)}
+                  onClick={() => {
+                    if (isBedroomTheme(theme.id)) {
+                      handleThemeChange(theme.id);
+                    }
+                  }}
                 >
                   {theme.name}
                 </button>
               ))}
             </div>
             <p className="mt-2 text-xs opacity-60">
-              {(BEDROOM_THEMES as any)[bedroomTheme]?.description}
+              {BEDROOM_THEMES[bedroomTheme].description}
             </p>
           </div>
->>>>>>> Stashed changes
           <ToggleRow
             label="SOUND EFFECTS"
             value={!soundMuted}
@@ -106,11 +139,7 @@ export default function SettingsPage() {
               a fresh adventure.
             </p>
             <button
-<<<<<<< Updated upstream
-              className="wf-btn wf-btn-red w-full"
-=======
               className={`${ui.button} ${ui.buttonRed} mb-2 w-full`}
->>>>>>> Stashed changes
               onClick={() => {
                 resetProgress();
                 setMsg("PROGRESS RESET — BACK TO LEVEL 1!");
@@ -118,8 +147,6 @@ export default function SettingsPage() {
             >
               RESET PROGRESS
             </button>
-<<<<<<< Updated upstream
-=======
             <button
               className={`${ui.button} ${ui.buttonRed} w-full`}
               onClick={() => {
@@ -131,7 +158,6 @@ export default function SettingsPage() {
             >
               RESET TUTORIAL
             </button>
->>>>>>> Stashed changes
           </div>
         </div>
 

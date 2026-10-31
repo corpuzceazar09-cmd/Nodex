@@ -1,0 +1,1 @@
+const sharp=require('sharp'); sharp({create:{width:32,height:32,channels:4,background:{r:139,g:115,b:85,alpha:1}}}).png().toFile('public/assets/bedroom/classic/tiles/floor.png').then(()=>console.log('done'));
