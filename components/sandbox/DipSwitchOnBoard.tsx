@@ -10,8 +10,8 @@ import {
   type SimResult,
 } from "@/lib/sandboxSimulation";
 
-const BODY_TOP = 181;
-const BODY_HEIGHT = 34;
+const BODY_TOP = 179;
+const BODY_HEIGHT = 38;
 const BODY_BOTTOM = BODY_TOP + BODY_HEIGHT;
 
 type Props = {
@@ -53,32 +53,51 @@ export default function DipSwitchOnBoard({
 
   const x1 = holeX(start) - 13;
   const x2 = holeX(start + bottomCount - 1) + 13;
-  const outline = selected ? "#1414d2" : "#111111";
-  const outlineWidth = selected ? 3 : 2;
-  const bodyWidth = x2 - x1;
-  const bodyCenterX = (x1 + x2) / 2;
+  const outline = selected ? "#1414d2" : "#5a1010";
+  const outlineWidth = selected ? 3 : 1.5;
 
-  // Pin screen positions for the 4 DIP terminals.
-  const pinPositions: Record<number, { x: number; y: number }> = {};
+  // Pin screen positions for the 4 DIP terminals (E row = top, F row = bottom).
+  const pinPositions: Record<number, { x: number; y: number; isTop: boolean }> = {};
   for (let pin = 1; pin <= DIP_PACKAGE_PINS; pin += 1) {
     const hole = dipPinHole(start, pin);
-    const parts = hole.split("");
-    const row = parts[0];
+    const row = hole[0];
     const col = Number(hole.slice(1));
-    const y = row === "F" ? BODY_BOTTOM : BODY_TOP;
-    pinPositions[pin] = { x: holeX(col), y };
+    pinPositions[pin] = { x: holeX(col), y: row === "F" ? 220 : 176, isTop: row === "E" };
   }
+
+  // Each switch sits in the column it bridges: SW1 = pins 1 & 4 (left column),
+  // SW2 = pins 2 & 3 (right column). The slider moves toward "ON" (top) to
+  // connect the top hole to the bottom hole across the trench.
+  const slotTop = BODY_TOP + 8;
+  const slotHeight = BODY_HEIGHT - 16;
+  const knobHeight = slotHeight / 2;
 
   return (
     <g>
+      {/* Legs — background layer, behind the body */}
+      {Object.entries(pinPositions).map(([pin, pos]) => (
+        <rect
+          key={`leg-${pin}`}
+          x={pos.x - 3}
+          y={pos.isTop ? pos.y - 4 : BODY_BOTTOM - 2}
+          width={6}
+          height={pos.isTop ? BODY_TOP - pos.y + 6 : pos.y - BODY_BOTTOM + 6}
+          rx={1}
+          fill="#b9bec4"
+          stroke="#6d737a"
+          strokeWidth={0.8}
+          pointerEvents="none"
+        />
+      ))}
+
       {/* DIP body */}
       <rect
         x={x1}
         y={BODY_TOP}
-        width={bodyWidth}
+        width={x2 - x1}
         height={BODY_HEIGHT}
         rx={3}
-        fill="#e8e8e8"
+        fill="#d23c3c"
         stroke={outline}
         strokeWidth={outlineWidth}
         style={{ cursor: "grab" }}
@@ -87,123 +106,68 @@ export default function DipSwitchOnBoard({
           onBodyPointerDown(component.id, e);
         }}
       />
-      {/* Pin-1 notch on the left end */}
-      <path
-        d={`M ${x1 + 4} ${BODY_TOP + BODY_HEIGHT / 2 - 5} A 5 5 0 0 0 ${
-          x1 + 4
-        } ${BODY_TOP + BODY_HEIGHT / 2 + 5}`}
-        fill="none"
-        stroke="#555555"
-        strokeWidth={1.5}
-        pointerEvents="none"
-      />
-      {/* Pin numbers on the body */}
-      {DIP_PAIRS.flatMap((pair) =>
-        pair.map((pin) => {
-          const pos = pinPositions[pin];
-          if (!pos) return null;
-          return (
-            <text
-              key={`num-${pin}`}
-              x={pos.x}
-              y={pos.y === BODY_TOP ? BODY_TOP - 4 : BODY_BOTTOM + 9}
-              textAnchor="middle"
-              fontSize={5.5}
-              fontWeight={700}
-              fill="#555555"
-              pointerEvents="none"
-            >
-              {pin}
-            </text>
-          );
-        }),
-      )}
-      {/* Package label */}
+      {/* "ON ▲" marking between the two slots: slider up = ON */}
       <text
-        x={bodyCenterX}
-        y={BODY_TOP + 12}
+        x={(x1 + x2) / 2}
+        y={BODY_TOP + 13}
         textAnchor="middle"
-        fontSize={6}
-        fontWeight={700}
-        fill="#333333"
+        fontSize={5.5}
+        fontWeight={800}
+        fill="#ffffff"
         pointerEvents="none"
       >
-        {component.label}
+        ON
       </text>
+      <path
+        d={`M ${(x1 + x2) / 2} ${BODY_TOP + 4} l 3 4 l -6 0 z`}
+        fill="#ffffff"
+        pointerEvents="none"
+      />
 
-      {/* Two slider toggles, one per switch position */}
       {DIP_PAIRS.map((pair, index) => {
         const isOn = positions[index] === 1;
-        const colX = index === 0 ? x1 + bodyWidth * 0.28 : x1 + bodyWidth * 0.72;
-        const trackWidth = bodyWidth * 0.32;
-        const trackHeight = 10;
-        const trackX = colX - trackWidth / 2;
-        const trackY = BODY_TOP + 17;
-        const knobX = isOn
-          ? trackX + trackWidth - trackHeight / 2 - 1
-          : trackX + trackHeight / 2 + 1;
+        const pos = pinPositions[pair[0]];
+        if (!pos) return null;
+        const cx = pos.x;
         return (
-          <g key={index}>
-            {/* ON / OFF labels */}
-            <text
-              x={trackX - 2}
-              y={trackY + trackHeight / 2 + 2}
-              textAnchor="end"
-              fontSize={4}
-              fontWeight={700}
-              fill={isOn ? "#999999" : "#1d7a35"}
-              pointerEvents="none"
-            >
-              OFF
-            </text>
-            <text
-              x={trackX + trackWidth + 2}
-              y={trackY + trackHeight / 2 + 2}
-              textAnchor="start"
-              fontSize={4}
-              fontWeight={700}
-              fill={isOn ? "#1d7a35" : "#999999"}
-              pointerEvents="none"
-            >
-              ON
-            </text>
-            {/* Slider track */}
+          <g
+            key={index}
+            style={{ cursor: "pointer" }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              onToggle(component.id, index as 0 | 1);
+            }}
+          >
+            <title>{`SW${index + 1} (pins ${pair[0]} & ${pair[1]}) — ${isOn ? "ON" : "OFF"} · click to toggle`}</title>
             <rect
-              x={trackX}
-              y={trackY}
-              width={trackWidth}
-              height={trackHeight}
-              rx={trackHeight / 2}
-              fill={isOn ? "#b7e7bf" : "#c9c9c9"}
-              stroke={outline}
-              strokeWidth={1.2}
-              pointerEvents="none"
+              x={cx - 6}
+              y={slotTop}
+              width={12}
+              height={slotHeight}
+              fill="#2a1010"
+              stroke="#5a1010"
+              strokeWidth={0.8}
             />
-            {/* Slider knob (clickable) */}
-            <circle
-              cx={knobX}
-              cy={trackY + trackHeight / 2}
-              r={trackHeight / 2 - 1}
-              fill="#ffffff"
-              stroke={outline}
-              strokeWidth={1.2}
-              style={{ cursor: "pointer" }}
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                onToggle(component.id, index as 0 | 1);
-              }}
+            <rect
+              x={cx - 5}
+              y={isOn ? slotTop + 1 : slotTop + slotHeight - knobHeight - 1}
+              width={10}
+              height={knobHeight}
+              rx={1}
+              fill="#f7f7f7"
+              stroke="#8c8c8c"
+              strokeWidth={0.8}
             />
-            {/* Switch index caption */}
             <text
-              x={colX}
-              y={BODY_BOTTOM - 2}
+              x={cx}
+              y={BODY_BOTTOM - 1.8}
               textAnchor="middle"
-              fontSize={4}
-              fontWeight={700}
-              fill="#777777"
+              fontSize={5.2}
+              fontWeight={800}
+              fill="#ffffff"
               pointerEvents="none"
             >
-              SW{index + 1} (pins {pair[0]}&{pair[1]})
+              {index + 1}
             </text>
           </g>
         );
@@ -218,13 +182,15 @@ export default function DipSwitchOnBoard({
           const active = pinReading?.value === 1;
           return (
             <g key={`pin-${pin}`}>
-              <circle
-                cx={pos.x}
-                cy={pos.y}
-                r={3}
-                fill={active ? "#1d7a35" : "#555555"}
-                pointerEvents="none"
-              />
+              {active && (
+                <circle
+                  cx={pos.x}
+                  cy={pos.isTop ? pos.y - 6 : pos.y + 6}
+                  r={1.8}
+                  fill="#4cd964"
+                  pointerEvents="none"
+                />
+              )}
               <circle
                 cx={pos.x}
                 cy={pos.y}
@@ -237,7 +203,9 @@ export default function DipSwitchOnBoard({
                 }}
                 onPointerEnter={() => onPinEnter(component.id, pin)}
                 onPointerLeave={onPinLeave}
-              />
+              >
+                <title>{`DIP pin ${pin}`}</title>
+              </circle>
             </g>
           );
         }),

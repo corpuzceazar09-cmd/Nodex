@@ -35,6 +35,7 @@ type Props = {
   selectedId: string | null;
   draft: DraftWire;
   ghostChip: GhostChip;
+  ghostLabel?: string | null;
   onHolePointerDown: (hole: string, e: React.PointerEvent) => void;
   onHoleEnter: (hole: string) => void;
   onHoleLeave: () => void;
@@ -57,7 +58,8 @@ const WIRE_COLORS = [
 ];
 
 const COLS = Array.from({ length: COLUMNS }, (_, index) => index + 1);
-const CHIP_BODY_TOP = 181;
+const CHIP_BODY_TOP = 179;
+const CHIP_BODY_HEIGHT = 38;
 
 function pointOf(hole: string): { x: number; y: number } | null {
   const parts = splitHole(hole);
@@ -115,6 +117,7 @@ export default function Breadboard({
   selectedId,
   draft,
   ghostChip,
+  ghostLabel = null,
   onHolePointerDown,
   onHoleEnter,
   onHoleLeave,
@@ -400,7 +403,7 @@ export default function Breadboard({
         >
           {tone.glyph}
         </text>
-        {label}
+        {component.label !== tone.glyph && label}
       </g>
     );
   };
@@ -597,6 +600,10 @@ export default function Breadboard({
         </g>
       ))}
 
+      {/* Chips and DIP switches sit in the background layer: seated on the
+          board, underneath jumper wires and other parts. */}
+      {children}
+
       {mode === "delete" && wireHitLayer}
 
       {wires.map((wire, index) => {
@@ -604,7 +611,7 @@ export default function Breadboard({
         const b = pointOf(wire.to);
         if (!a || !b) return null;
         const d = wirePath(a, b);
-        const color = WIRE_COLORS[index % WIRE_COLORS.length];
+        const color = wire.color ?? WIRE_COLORS[index % WIRE_COLORS.length];
         const isSelectedWire = selectedId === wire.id;
         return (
           <g key={wire.id}>
@@ -657,7 +664,7 @@ export default function Breadboard({
               x={x1}
               y={CHIP_BODY_TOP}
               width={x2 - x1}
-              height={34}
+              height={CHIP_BODY_HEIGHT}
               rx={3}
               fill="#d9d9d9"
               stroke="#1414d2"
@@ -678,7 +685,19 @@ export default function Breadboard({
         );
       })()}
 
-      {children}
+      {!ghostChip && ghostLabel && hoverHole && (() => {
+        const p = pointOf(hoverHole);
+        if (!p) return null;
+        return (
+          <g pointerEvents="none">
+            <circle cx={p.x} cy={p.y} r={7} fill="#1414d2" opacity={0.25} />
+            <rect x={p.x - 26} y={p.y - 30} width={52} height={14} rx={3} fill="#1414d2" opacity={0.85} />
+            <text x={p.x} y={p.y - 20} textAnchor="middle" fontSize={7} fontWeight={700} fill="#ffffff">
+              {ghostLabel}
+            </text>
+          </g>
+        );
+      })()}
 
       {draft && (() => {
         const from = pointOf(draft.from);
