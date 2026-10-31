@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { ROOM_OBJECTS, STAGE_WIDTH, STAGE_HEIGHT, SOLID_SCENE_AREAS, WALKABLE_POLYGON } from "@/data/isoBedroomObjects";
+import { ROOM_OBJECTS, STAGE_WIDTH, STAGE_HEIGHT, SOLID_SCENE_AREAS, WALKABLE_POLYGON,
+  INTERACTION_REACH, GUIDE_POSITION, PLAYER_SPAWN } from "@/data/isoBedroomObjects";
 import { TUTORIAL_DIALOGUE } from "@/data/tutorialDialogue";
 import { getSavedTheme } from "@/utils/themeStorage";
 import { usePlayerMovement } from "@/hooks/usePlayerMovement";
@@ -19,8 +20,6 @@ import ComputerBoot from "./ComputerBoot";
 import BedInteraction from "./BedInteraction";
 import MobileControls from "./MobileControls";
 
-const playerDimensions = { width: 78, height: 114 };
-const guidePosition = { x: 690, y: 505 };
 
 export default function BedroomScene() {
   const [gameState, setGameState] = useState("BEDROOM_IDLE");
@@ -38,7 +37,7 @@ export default function BedroomScene() {
   const [theme, setTheme] = useState("classic");
   const [viewport, setViewport] = useState({ width: 1200, height: 780 });
   const [assetReady, setAssetReady] = useState(false);
-  const lastPosition = useRef({ x: 630, y: 646 });
+  const lastPosition = useRef({ ...PLAYER_SPAWN });
   const departureTimers = useRef([]);
 
   useEffect(() => {
@@ -64,11 +63,11 @@ export default function BedroomScene() {
 
   const movementLocked = gameState !== "BEDROOM_IDLE" || isResting;
   const { position, setPosition, direction, isMoving } = usePlayerMovement(
-    630, 646, movementLocked, checkPlayerCollision, 240
+    PLAYER_SPAWN.x, PLAYER_SPAWN.y, movementLocked, checkPlayerCollision, 240
   );
 
   const { activeObject, interactionPrompt } = useInteraction(
-    position, playerDimensions, gameState !== "BEDROOM_IDLE", ROOM_OBJECTS
+    position, gameState !== "BEDROOM_IDLE", ROOM_OBJECTS, INTERACTION_REACH
   );
 
   useEffect(() => {
@@ -168,6 +167,7 @@ export default function BedroomScene() {
     const key = { up:"ArrowUp", down:"ArrowDown", left:"ArrowLeft", right:"ArrowRight" }[direction];
     if (key) window.dispatchEvent(new KeyboardEvent(down ? "keydown" : "keyup", { key, bubbles:true }));
   };
+  const introActive = gameState === "NPC_DIALOGUE" && showTutorial;
   const scale = Math.min(viewport.width / STAGE_WIDTH, viewport.height / STAGE_HEIGHT, 1.35);
 
   return (
@@ -175,17 +175,12 @@ export default function BedroomScene() {
       <div style={{ position:"absolute",width:STAGE_WIDTH*scale,height:STAGE_HEIGHT*scale,
         left:"50%",top:"50%",transform:"translate(-50%,-50%)" }}>
         <div style={{ position:"relative",width:STAGE_WIDTH,height:STAGE_HEIGHT,
-          transform:`scale(${scale})`,transformOrigin:"top left",overflow:"hidden" }}>
+          transform:`scale(${scale})`,transformOrigin:"top left",overflow:"hidden",
+          filter: introActive ? "blur(7px) brightness(.72) saturate(.85)" : "none",
+          transition:"filter .6s ease" }}>
           <img src={`/assets/bedroom/${theme}/room-iso.png`} alt="NODEX original angled pixel-art bedroom"
             draggable={false} style={{position:"absolute",left:0,top:0,width:STAGE_WIDTH,height:STAGE_HEIGHT,imageRendering:"pixelated"}} />
           {!assetReady && <div style={{position:"absolute",left:"42%",top:"43%",color:"#fff7dc",fontSize:24}}>Loading bedroom...</div>}
-          {activeObject && gameState === "BEDROOM_IDLE" && (
-            <svg width={STAGE_WIDTH} height={STAGE_HEIGHT} viewBox={`0 0 ${STAGE_WIDTH} ${STAGE_HEIGHT}`}
-              style={{position:"absolute",left:0,top:0,pointerEvents:"none"}} aria-hidden="true">
-              <polygon points={activeObject.outline} fill="#fff6a3" fillOpacity="0.08"
-                stroke="#fff8bd" strokeWidth="4" strokeDasharray="10 6" />
-            </svg>
-          )}
           {!isResting ? (
             <PlayerCharacter x={position.x} y={position.y} direction={direction}
               isMoving={isMoving} theme={theme} gender={playerProfile.gender} />
@@ -199,7 +194,7 @@ export default function BedroomScene() {
           )}
           {isResting && <img src={`/assets/bedroom/${theme}/bed-quilt-foreground.png`} alt="" draggable={false}
             style={{position:"absolute",left:205,top:525,width:197,height:155,zIndex:23,pointerEvents:"none",imageRendering:"pixelated"}} />}
-          <TutorialNPC x={guidePosition.x} y={guidePosition.y} visible={npcVisible} state={npcState} theme={theme} />
+          <TutorialNPC x={GUIDE_POSITION.x} y={GUIDE_POSITION.y} visible={npcVisible} state={npcState} theme={theme} />
           <InteractionPrompt prompt={interactionPrompt} x={position.x+39} y={position.y}
             visible={!!activeObject && gameState === "BEDROOM_IDLE" && !isResting} />
         </div>
@@ -220,7 +215,7 @@ export default function BedroomScene() {
         currentIndex={tutorialIndex} onNext={handleTutorialNext} onComplete={handleTutorialComplete}
         visible={gameState === "NPC_DIALOGUE" && showTutorial}
         nameValue={playerProfile.name === "Player" ? "" : playerProfile.name}
-        selectedGender={playerGender} onGender={handleGenderSelection}
+        selectedGender={playerGender} onGender={handleGenderSelection} theme={theme}
         onName={handleNameEntry} onConfirm={handleNameConfirmation}
       />
       <TelevisionMenu visible={tvVisible} onClose={() => { setTvVisible(false);setGameState("BEDROOM_IDLE"); }} />

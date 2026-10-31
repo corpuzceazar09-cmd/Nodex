@@ -71,23 +71,41 @@ const PART_ORDER: PartKind[] = [
   "ground",
 ];
 
+// Demo: a 7408 AND gate whose two inputs come from a real 4-pin DIP switch,
+// wired the way you would on a physical breadboard.
+//   DIP switch at column 4  → SW1 bridges E4↔F4, SW2 bridges E5↔F5
+//   7408 at column 12       → pin1 1A=F12, pin2 1B=F13, pin3 1Y=F14,
+//                              pin7 GND=F18, pin14 VCC=E12
 const DEMO: SandboxState = {
   components: [
-    { id: "chip1", kind: "chip", chipId: "7408", label: "7408", startCol: 8 },
-    { id: "sw-a", kind: "switch", label: "A", hole: "A2", state: 1 },
-    { id: "sw-b", kind: "switch", label: "B", hole: "A3", state: 0 },
-    { id: "led-y", kind: "led", label: "Y", hole: "A4" },
     { id: "pwr", kind: "power", label: "5V", hole: "TP1" },
     { id: "gnd", kind: "ground", label: "GND", hole: "BN1" },
+    { id: "dip1", kind: "dip", label: "DIP", startCol: 4, dipStates: [1, 0] },
+    { id: "chip1", kind: "chip", chipId: "7408", label: "7408", startCol: 12 },
+    { id: "led-y", kind: "led", label: "Y", hole: "J14" },
   ],
   wires: [
-    { id: "w1", from: "A2", to: "F8" },
-    { id: "w2", from: "A3", to: "F9" },
-    { id: "w3", from: "F10", to: "A4" },
-    { id: "w4", from: "TP1", to: "E8" },
-    { id: "w5", from: "BN1", to: "F14" },
+    { id: "w1", from: "TP4", to: "A4", color: "#c0392b" },   // +5V → DIP SW1 (top)
+    { id: "w2", from: "TP5", to: "A5", color: "#c0392b" },   // +5V → DIP SW2 (top)
+    { id: "w3", from: "H4", to: "H12", color: "#1d7a35" },   // SW1 out → 1A (pin 1)
+    { id: "w4", from: "I5", to: "I13", color: "#1414d2" },   // SW2 out → 1B (pin 2)
+    { id: "w5", from: "TP12", to: "A12", color: "#c0392b" }, // +5V → VCC (pin 14)
+    { id: "w6", from: "BN18", to: "J18", color: "#111111" }, // GND → GND (pin 7)
   ],
 };
+
+/** Move a hole-anchored part to a new hole, keeping two-hole parts' span. */
+function shiftComponent(component: SandboxComponent, target: string): SandboxComponent {
+  if (!component.hole2 || !component.hole) return { ...component, hole: target };
+  const a = splitHole(component.hole);
+  const b = splitHole(component.hole2);
+  const t = splitHole(target);
+  if (!a || !b || !t) return component;
+  const col2 = t.col + (b.col - a.col);
+  if (col2 < 1 || col2 > 30) return component;
+  const row2 = a.row === b.row ? t.row : b.row;
+  return { ...component, hole: target, hole2: `${row2}${col2}` };
+}
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -106,15 +124,28 @@ export default function SandboxClient() {
   const [zoom, setZoom] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [resistorStart, setResistorStart] = useState<string | null>(null);
+  const [, setResistorStart] = useState<string | null>(null);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const stateRef = useRef<SandboxState>(DEMO);
   const dragRef = useRef<DragState | null>(null);
-  const idRef = useRef(6);
+  const idRef = useRef(20);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const libDragRef = useRef<{ item: LibraryItem; label: string; sx: number; sy: number } | null>(null);
+  const [libDrag, setLibDrag] = useState<{
+    item: LibraryItem;
+    label: string;
+    x: number;
+    y: number;
+    sx: number;
+    sy: number;
+  } | null>(null);
 
   const sim = useMemo(() => simulate(sandbox), [sandbox]);
+
+  useEffect(() => {
+    libDragRef.current = libDrag;
+  }, [libDrag]);
 
   useEffect(() => {
     stateRef.current = sandbox;
@@ -148,7 +179,7 @@ export default function SandboxClient() {
     setFuture([]);
   }
 
-  function toBoard(event: React.PointerEvent): { x: number; y: number } | null {
+  function toBoard(event: { clientX: number; clientY: number }): { x: number; y: number } | null {
     const svg = svgRef.current;
     if (!svg) return null;
     const point = svg.createSVGPoint();
@@ -423,7 +454,7 @@ export default function SandboxClient() {
               ...prev,
               components: prev.components.map((component) =>
                 component.id === drag.id
-                  ? { ...component, hole: target }
+                  ? shiftComponent(component, target)
                   : component,
               ),
             };
@@ -532,7 +563,8 @@ export default function SandboxClient() {
     }
   }
 
-  function placeAt(hole: string) {
+  function placeAt(hole: string, item: LibraryItem | null = pending) {
+    const pending = item;
     if (!pending) {
       notify("PICK A COMPONENT FROM THE LIBRARY FIRST");
       return;
@@ -564,9 +596,7 @@ export default function SandboxClient() {
       });
       setSelectedId(id);
       sounds.playBtn();
-      notify(
-        `${pending.chipId} PLACED · VCC PIN ${def.vcc} / GND PIN ${def.gnd} · CLICK AGAIN FOR ANOTHER`,
-      );
+      notify(`${pending.chipId} PLACED · VCC PIN ${def.vcc} / GND PIN ${def.gnd}`);
       return;
     }
 
@@ -593,42 +623,25 @@ export default function SandboxClient() {
       });
       setSelectedId(id);
       sounds.playBtn();
-      notify("DIP SWITCH PLACED · CLICK A PIN OR TOGGLE IN INSPECTOR");
+      notify("DIP SWITCH PLACED · CLICK A SLIDER TO TOGGLE IT");
       return;
     }
 
-    if (pending.kind === "resistor" || pending.kind === "led") {
-      if (!resistorStart) {
-        setResistorStart(hole);
-        notify(
-          pending.kind === "led"
-            ? "LED: CLICK THE SECOND HOLE"
-            : "RESISTOR: CLICK THE SECOND HOLE",
-        );
-        sounds.playBtn();
-        return;
-      }
-      if (resistorStart === hole) return;
+    if (pending.kind === "resistor") {
+      // Dropped resistors span 3 columns along the same row.
+      const col2 = parts.col + 3 <= 30 ? parts.col + 3 : parts.col - 3;
+      const hole2 = `${parts.row}${col2}`;
       const id = `c${idRef.current++}`;
-      const component: SandboxComponent = {
-        id,
-        kind: pending.kind,
-        label: pending.kind === "led" ? "LED" : "R",
-        hole: resistorStart,
-        hole2: hole,
-      };
       commit({
         ...stateRef.current,
-        components: [...stateRef.current.components, component],
+        components: [
+          ...stateRef.current.components,
+          { id, kind: "resistor", label: "R", hole, hole2 },
+        ],
       });
-      setResistorStart(null);
       setSelectedId(id);
-      sounds.playBtn();
-      notify(
-        pending.kind === "led"
-          ? "LED PLACED · CLICK AGAIN FOR ANOTHER"
-          : "RESISTOR PLACED · CLICK AGAIN FOR ANOTHER",
-      );
+      sounds.playSnap();
+      notify(`RESISTOR PLACED ${hole} → ${hole2}`);
       return;
     }
 
@@ -655,24 +668,97 @@ export default function SandboxClient() {
     });
     setSelectedId(id);
     sounds.playBtn();
-    notify(`${PART_LABEL[pending.kind]} PLACED · CLICK AGAIN FOR ANOTHER`);
+    notify(`${PART_LABEL[pending.kind]} PLACED`);
   }
 
-  function pickChip(chipId: ChipId) {
-    setPending({ type: "chip", chipId });
-    setMode("place");
-    setResistorStart(null);
-    sounds.playBtn();
-    notify(`PLACING ${chipId} · CLICK THE BREADBOARD`);
+  // --- Drag & drop from the component library -----------------------------
+  function libraryLabel(item: LibraryItem): string {
+    return item.type === "chip" ? item.chipId : PART_LABEL[item.kind];
   }
 
-  function pickPart(kind: PartKind) {
-    setPending({ type: "part", kind });
-    setMode("place");
+  function startLibraryDrag(item: LibraryItem, event: React.PointerEvent) {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    // Touch pointers are implicitly captured by the button; release so the
+    // board underneath receives the drop.
+    const target = event.currentTarget as Element;
+    if (target.hasPointerCapture?.(event.pointerId)) {
+      target.releasePointerCapture(event.pointerId);
+    }
+    setMode("select");
+    setDraft(null);
     setResistorStart(null);
-    sounds.playBtn();
-    notify(`PLACING ${PART_LABEL[kind]} · CLICK A HOLE`);
+    setPending(item);
+    setLibDrag({
+      item,
+      label: libraryLabel(item),
+      x: event.clientX,
+      y: event.clientY,
+      sx: event.clientX,
+      sy: event.clientY,
+    });
   }
+
+  const libDragActive = libDrag !== null;
+  useEffect(() => {
+    if (!libDragActive) return;
+    const boardHoleAt = (clientX: number, clientY: number) => {
+      const svg = svgRef.current;
+      if (!svg) return null;
+      const rect = svg.getBoundingClientRect();
+      if (
+        clientX < rect.left ||
+        clientX > rect.right ||
+        clientY < rect.top ||
+        clientY > rect.bottom
+      ) {
+        return null;
+      }
+      const point = toBoard({ clientX, clientY });
+      return point ? nearestHole(point.x, point.y, { maxDist: 40 }) : null;
+    };
+    const onMove = (e: PointerEvent) => {
+      setLibDrag((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : prev));
+      setHoverHole(boardHoleAt(e.clientX, e.clientY));
+    };
+    const finish = (e: PointerEvent, cancelled: boolean) => {
+      const current = libDragRef.current;
+      const hole = cancelled ? null : boardHoleAt(e.clientX, e.clientY);
+      setLibDrag(null);
+      setPending(null);
+      setHoverHole(null);
+      if (!current) return;
+      if (hole) {
+        placeAt(hole, current.item);
+      } else if (
+        !cancelled &&
+        Math.hypot(e.clientX - current.sx, e.clientY - current.sy) < 6
+      ) {
+        notify(`DRAG ${current.label} ONTO THE BREADBOARD`);
+      }
+    };
+    const onUp = (e: PointerEvent) => finish(e, false);
+    const onCancel = (e: PointerEvent) => finish(e, true);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setLibDrag(null);
+        setPending(null);
+        setHoverHole(null);
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("keydown", onKey);
+    };
+    // placeAt/notify read refs + latest state through closures each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [libDragActive]);
 
   function chooseMode(next: SandboxMode) {
     setMode(next);
@@ -772,21 +858,14 @@ export default function SandboxClient() {
     <div className={ui.page}>
     <ScreenFrame title="NODEX — BREADBOARD SANDBOX">
       <div className={ui.sandboxToolbar}>
-        {(["select", "place", "wire", "delete"] as SandboxMode[]).map(
+        {(["select", "wire", "delete"] as SandboxMode[]).map(
           (entry) => (
             <button
               key={entry}
               type="button"
               className={ui.button}
               aria-pressed={mode === entry}
-              onClick={() => {
-                if (entry === "place" && !pending) {
-                  setMode("place");
-                  notify("PICK A COMPONENT FROM THE LIBRARY");
-                  return;
-                }
-                chooseMode(entry);
-              }}
+              onClick={() => chooseMode(entry)}
             >
               {entry.toUpperCase()}
             </button>
@@ -829,6 +908,9 @@ export default function SandboxClient() {
       <div className={`${ui.sandboxLayout} ${isFullscreen ? ui.sandboxFullscreen : ""}`}>
         <aside className={`${ui.sandboxPanel} ${isFullscreen ? ui.sandboxPanelHidden : ""}`}>
           <h3>COMPONENT LIBRARY</h3>
+          <p className={ui.sandboxDetailEmpty} style={{ margin: 0 }}>
+            Drag a part onto the breadboard.
+          </p>
           <div className={ui.sandboxGroupLabel}>Logic ICs</div>
           {CHIP_ORDER.map((chipId) => {
             const def = CHIPS[chipId];
@@ -840,7 +922,9 @@ export default function SandboxClient() {
                 aria-pressed={
                   pending?.type === "chip" && pending.chipId === chipId
                 }
-                onClick={() => pickChip(chipId)}
+                onPointerDown={(e) => startLibraryDrag({ type: "chip", chipId }, e)}
+                style={{ touchAction: "none", cursor: "grab" }}
+                title={`Drag ${chipId} onto the breadboard`}
               >
                 <span>{chipId}</span>
                 <small>{def.short}</small>
@@ -854,7 +938,9 @@ export default function SandboxClient() {
               type="button"
               className={ui.sandboxLibItem}
               aria-pressed={pending?.type === "part" && pending.kind === kind}
-              onClick={() => pickPart(kind)}
+              onPointerDown={(e) => startLibraryDrag({ type: "part", kind }, e)}
+              style={{ touchAction: "none", cursor: "grab" }}
+              title={`Drag ${PART_LABEL[kind]} onto the breadboard`}
             >
               <span>{PART_LABEL[kind]}</span>
               <small>
@@ -863,7 +949,7 @@ export default function SandboxClient() {
                   : kind === "dip"
                     ? "4-pin · 2 pos"
                     : kind === "led"
-                      ? "2 holes"
+                      ? "1 hole"
                       : kind === "resistor"
                         ? "2 holes"
                         : "source"}
@@ -878,7 +964,8 @@ export default function SandboxClient() {
             <span>LED ON {ledOnCount}</span>
           </div>
           <p className={ui.sandboxDetailEmpty}>
-            Demo: a 7408 AND gate. Toggle switch <b>B</b> to light the LED.
+            Demo: a 7408 AND gate fed by a DIP switch. Slide <b>switch 2</b> up
+            to ON to light the LED (1 AND 1 = 1).
           </p>
         </aside>
 
@@ -898,6 +985,7 @@ export default function SandboxClient() {
               selectedId={selectedId}
               draft={draft}
               ghostChip={ghostChip}
+              ghostLabel={libDrag && !ghostChip ? libDrag.label : null}
               onHolePointerDown={onHolePointerDown}
               onHoleEnter={setHoverHole}
               onHoleLeave={() => setHoverHole(null)}
@@ -941,13 +1029,13 @@ export default function SandboxClient() {
             </div>
           </div>
           <div className={ui.sandboxBoardHint}>
-            {mode === "place"
-              ? `PLACE MODE${pendingLabel ? ` · ${pendingLabel}` : ""} · click a hole to drop it`
+            {libDrag
+              ? `DROP ${pendingLabel ?? ""} ON A HOLE · Esc to cancel`
               : mode === "delete"
                 ? "DELETE MODE · click a wire or part to remove it"
                 : mode === "wire"
                   ? "WIRE MODE · drag hole → hole (chips: drag from a pin)"
-                  : "SELECT MODE · drag parts · click a switch to toggle · drag hole → hole to wire"}
+                  : "SELECT MODE · drag parts from the library · click a switch / DIP slider to toggle · drag hole → hole to wire"}
           </div>
         </div>
 
@@ -956,12 +1044,15 @@ export default function SandboxClient() {
           {!selected && (
             <div className={ui.sandboxDetailEmpty}>
               <b>FREE EXPERIMENT GUIDE</b>
-              <p>1. Pick a logic IC from the library and click the board.</p>
+              <p>1. Drag a logic IC from the library onto the board.</p>
               <p>
                 2. Wire the chip&apos;s VCC pin to a 5V source and its GND pin
                 to ground.
               </p>
-              <p>3. Add a switch for each input, then wire switch → input pin.</p>
+              <p>
+                3. Drag in a DIP switch. Wire 5V to its top pins and its bottom
+                pins to the chip&apos;s inputs.
+              </p>
               <p>4. Wire an output pin to an LED to see the result.</p>
               <p>
                 A chip only evaluates when VCC is HIGH and GND is LOW. The
@@ -1214,6 +1305,28 @@ export default function SandboxClient() {
         </aside>
       </div>
 
+      {libDrag && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            left: libDrag.x + 12,
+            top: libDrag.y + 12,
+            zIndex: 3000,
+            pointerEvents: "none",
+            padding: "4px 8px",
+            background: "#fdf9ef",
+            border: "2px solid #6c5ccf",
+            boxShadow: "3px 3px 0 #2a2540",
+            fontFamily: "inherit",
+            fontWeight: 700,
+            fontSize: 12,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {libDrag.label}
+        </div>
+      )}
       {toast && <div className={ui.toast}>{toast}</div>}
     </ScreenFrame>
     </div>

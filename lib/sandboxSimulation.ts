@@ -46,6 +46,8 @@ export type SandboxWire = {
   id: string;
   from: string;
   to: string;
+  /** Optional jumper colour (e.g. red for +5V, black for GND). */
+  color?: string;
 };
 
 export type SandboxState = {
