@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Pixelify_Sans } from "next/font/google";
 import { GameProvider } from "@/components/GameProvider";
 import "./globals.css";
 
@@ -13,6 +13,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const pixelify = Pixelify_Sans({
+  variable: "--font-pixel",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Nodex — Logic Gate Game (Wireframe)",
   description:
@@ -23,9 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${pixelify.variable} h-full antialiased`}
     >
-      <body className="flex h-dvh min-h-dvh flex-col overflow-hidden bg-[#2b2b2b] font-mono text-[#111]">
+      <body className="flex h-dvh min-h-dvh flex-col overflow-hidden bg-[#1a1726] font-mono text-[#292235]">
         <GameProvider>{children}</GameProvider>
       </body>
     </html>
