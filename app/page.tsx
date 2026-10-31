@@ -1,5 +1,5 @@
-import Link from "next/link";
 import ScreenFrame from "@/components/ScreenFrame";
+import StartButton from "@/components/StartButton";
 
 export default function LandingPage() {
   return (
@@ -51,9 +51,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <Link href="/intro" className="wf-btn wf-btn-primary wf-blink mt-1">
-          ▶ PRESS START
-        </Link>
+        <StartButton />
         <p className="wf-hint text-center">
           Master BUFFER, AND, OR, NOT, NAND, NOR, XOR and XNOR — earn XP, keep
           your streak, become a Nodex.

@@ -1,19 +1,21 @@
 // The opening is one conversation. Selection and input steps are rendered
 // inside the same RPG dialogue box as the spoken lines.
-export const TUTORIAL_DIALOGUE = [
-  { speaker: "NODEX GUIDE", text: "Hello there! Welcome to the world of NODEX!" },
-  { speaker: "NODEX GUIDE", text: "Before we begin, I'd like to know a little about you." },
-  { speaker: "NODEX GUIDE", text: "First, which one are you? Pick your character!", mode: "gender" },
-  { speaker: "NODEX GUIDE", text: "And what is your name?", mode: "name" },
-  { speaker: "NODEX GUIDE", text: "So your name is {name}. Is that correct?", mode: "confirm" },
-  { speaker: "NODEX GUIDE", text: "Nice to meet you, {name}! Now, welcome to NODEX, your digital logic adventure." },
-  { speaker: "NODEX GUIDE", text: "You'll learn about logic gates, build circuits, and practice network cabling." },
-  { speaker: "NODEX GUIDE", text: "Use WASD or the arrow keys to walk. Hold a direction to keep moving!" },
-  { speaker: "NODEX GUIDE", text: "Walk right up to an object until a prompt appears, then press E, Enter, or Space to interact." },
-  { speaker: "NODEX GUIDE", text: "Try resting in bed, reading the books, checking the drawers for your circuit and RJ45 kits, or watching TV." },
-  { speaker: "NODEX GUIDE", text: "See that computer? Walk up to it and press E to enter NODEX." },
-  { speaker: "NODEX GUIDE", text: "Your lessons, challenges, cabling game, and circuit sandbox are all inside." },
-  { speaker: "NODEX GUIDE", text: "You're ready, {name}! I'll leave you to explore. Good luck!" }
-];
+// The guide is PROF. LOGIC, the same professor who meets the player again on
+// the computer (/intro) for the logic lessons.
+const GUIDE = "PROF. LOGIC";
 
-export const TUTORIAL_STORAGE_KEY = "nodex_tutorial_completed";
+export const TUTORIAL_DIALOGUE = [
+  { speaker: GUIDE, text: "Hello there! Welcome to the world of NODEX! I'm PROF. LOGIC." },
+  { speaker: GUIDE, text: "Before we begin, I'd like to know a little about you." },
+  { speaker: GUIDE, text: "First, which one are you? Pick your character!", mode: "gender" },
+  { speaker: GUIDE, text: "And what is your name?", mode: "name" },
+  { speaker: GUIDE, text: "So your name is {name}. Is that correct?", mode: "confirm" },
+  { speaker: GUIDE, text: "Nice to meet you, {name}! Now, welcome to NODEX, your digital logic adventure." },
+  { speaker: GUIDE, text: "You'll learn about logic gates, build circuits, and practice network cabling." },
+  { speaker: GUIDE, text: "Use WASD or the arrow keys to walk. Hold a direction to keep moving!" },
+  { speaker: GUIDE, text: "Walk right up to an object until a prompt appears, then press E, Enter, or Space to interact." },
+  { speaker: GUIDE, text: "Try resting in bed, reading the books, checking the drawers for your circuit and RJ45 kits, or watching TV." },
+  { speaker: GUIDE, text: "See that computer? Walk up to it and press E to enter NODEX." },
+  { speaker: GUIDE, text: "Your lessons, challenges, cabling game, and circuit sandbox are all inside." },
+  { speaker: GUIDE, text: "You're ready, {name}! Boot up the computer when you are. I'll meet you there!" }
+];

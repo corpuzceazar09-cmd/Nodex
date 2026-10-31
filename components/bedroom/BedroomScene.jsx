@@ -8,7 +8,7 @@ import { getSavedTheme } from "@/utils/themeStorage";
 import { usePlayerMovement } from "@/hooks/usePlayerMovement";
 import { useInteraction } from "@/hooks/useInteraction";
 import { isBedroomPositionBlocked } from "@/utils/bedroomGeometry";
-import { completeTutorial, resetTutorial } from "@/utils/roomStorage";
+import { useGame } from "@/components/GameProvider";
 import PlayerCharacter from "./PlayerCharacter";
 import TutorialNPC from "./TutorialNPC";
 import DialogueBox from "./DialogueBox";
@@ -22,6 +22,8 @@ import MobileControls from "./MobileControls";
 
 
 export default function BedroomScene() {
+  const { loaded, profile: savedProfile, setProfile } = useGame();
+  const introDecided = useRef(false);
   const [gameState, setGameState] = useState("BEDROOM_IDLE");
   const [showTutorial, setShowTutorial] = useState(false);
   const [playerGender, setPlayerGender] = useState("boy");
@@ -70,22 +72,27 @@ export default function BedroomScene() {
     position, gameState !== "BEDROOM_IDLE", ROOM_OBJECTS, INTERACTION_REACH
   );
 
+  // Once the save is loaded: a player PROF. LOGIC has already met keeps their
+  // character and gets the room to themselves; a new player gets the intro.
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("nodex_player_profile") || "null");
-      if (saved && typeof saved.name === "string" && saved.name.trim()) {
-        setPlayerProfile(saved);
-        setPlayerGender(saved.gender === "girl" ? "girl" : "boy");
-      }
-    } catch { /* Invalid profile is ignored without affecting progress. */ }
-    // Consistent with the accepted flow: guide begins every fresh bedroom launch.
+    if (!loaded || introDecided.current) return;
+    introDecided.current = true;
+    /* eslint-disable react-hooks/set-state-in-effect -- one-off sync from the loaded save */
+    if (savedProfile) {
+      setPlayerProfile(savedProfile);
+      setPlayerGender(savedProfile.gender);
+      setNpcVisible(false);
+      return;
+    }
     setTutorialIndex(0);
     setNpcState("idle");
     setNpcVisible(true);
     setShowTutorial(true);
     setGameState("NPC_DIALOGUE");
-    return () => departureTimers.current.forEach(clearTimeout);
-  }, []);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [loaded, savedProfile]);
+
+  useEffect(() => () => departureTimers.current.forEach(clearTimeout), []);
 
   const handleWakeUp = useCallback(() => {
     setIsResting(false);
@@ -139,8 +146,7 @@ export default function BedroomScene() {
   };
   const handleNameConfirmation = confirmed => {
     if (!confirmed) { setTutorialIndex(3); return; }
-    const profile = { name: playerProfile.name, gender: playerGender };
-    try { localStorage.setItem("nodex_player_profile", JSON.stringify(profile)); } catch {}
+    setProfile({ name: playerProfile.name, gender: playerGender });
     setTutorialIndex(5);
   };
   const handleTutorialComplete = () => {
@@ -150,7 +156,6 @@ export default function BedroomScene() {
       setNpcState("disappearing");
       departureTimers.current.push(setTimeout(() => {
         setNpcVisible(false);
-        completeTutorial();
         setGameState("BEDROOM_IDLE");
       }, 450));
     }, 420));
@@ -158,7 +163,6 @@ export default function BedroomScene() {
   const replayIntroduction = () => {
     departureTimers.current.forEach(clearTimeout);
     departureTimers.current = [];
-    resetTutorial();
     setNpcState("idle"); setNpcVisible(true);
     setTutorialIndex(0); setShowTutorial(true); setGameState("NPC_DIALOGUE");
   };
@@ -207,7 +211,7 @@ export default function BedroomScene() {
         <button type="button" onClick={replayIntroduction}
           style={{position:"fixed",top:12,right:16,zIndex:80,padding:"10px 14px",color:"#292032",
           background:"#f3eedc",border:"3px solid #352c3b",fontFamily:"monospace",cursor:"pointer"}}>
-          Replay NPC Introduction
+          Replay PROF. LOGIC&apos;s Introduction
         </button>
       )}
       <DialogueBox

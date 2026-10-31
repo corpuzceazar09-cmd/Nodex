@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -15,11 +14,12 @@ import { GATE_ORDER } from "@/lib/data/gates";
 import { sounds } from "@/lib/sound";
 import {
   DEFAULT_SAVE,
-  EMPTY_COMPLETED,
   clearSave,
+  coerceProfile,
   loadSave,
   saveSave,
   type CompletedMap,
+  type PlayerProfile,
   type SaveData,
 } from "@/lib/storage";
 
@@ -41,6 +41,12 @@ type GameState = {
   exploredGates: string[];
   soundMuted: boolean;
   musicMuted: boolean;
+  /** False until the save has been read from storage on the client. */
+  loaded: boolean;
+  profile: PlayerProfile | null;
+  onboarded: boolean;
+  setProfile: (profile: PlayerProfile) => void;
+  completeOnboarding: () => void;
   selectTier: (tier: TierId) => void;
   completeLevel: (
     levelId: string,
@@ -68,28 +74,40 @@ const GameContext = createContext<GameState | null>(null);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [save, setSave] = useState<SaveData>(DEFAULT_SAVE);
-  const hydrated = useRef(false);
+  const [loaded, setLoaded] = useState(false);
 
   // Load any existing save once, on the client, after hydration. Doing this in
   // an effect (rather than the initializer) keeps the server and first client
   // render identical and avoids a hydration mismatch.
   useEffect(() => {
-    const loaded = loadSave();
-    if (loaded) {
+    const stored = loadSave();
+    if (stored) {
       // Loading persisted state after mount is intentional: it keeps the
       // server render and first client render identical (no hydration error).
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSave(loaded);
-      sounds.setMuted(loaded.soundMuted);
+      setSave(stored);
+      sounds.setMuted(stored.soundMuted);
     }
-    hydrated.current = true;
+    setLoaded(true);
   }, []);
 
-  // Persist on every change (but not before the initial load completes).
+  // Persist on every change, but only from the render after the load. Gating on
+  // state (not a ref set inside the load effect) stops the still-default save
+  // from overwriting storage before the loaded one arrives.
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (!loaded) return;
     saveSave(save);
-  }, [save]);
+  }, [save, loaded]);
+
+  const setProfile = useCallback((profile: PlayerProfile) => {
+    const clean = coerceProfile(profile);
+    if (!clean) return;
+    setSave((prev) => ({ ...prev, profile: clean, name: clean.name }));
+  }, []);
+
+  const completeOnboarding = useCallback(() => {
+    setSave((prev) => (prev.onboarded ? prev : { ...prev, onboarded: true }));
+  }, []);
 
   const selectTier = useCallback((tier: TierId) => {
     setSave((prev) => ({ ...prev, selectedTier: tier }));
@@ -181,18 +199,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const resetProgress = useCallback(() => {
     clearSave();
-    const fresh: SaveData = {
-      ...DEFAULT_SAVE,
-      xp: 0,
-      streak: 0,
-      selectedTier: null,
-      completed: { ...EMPTY_COMPLETED },
-      stars: {},
-      badges: [],
-      exploredGates: [],
-    };
-    sounds.setMuted(fresh.soundMuted);
-    setSave(fresh);
+    sounds.setMuted(DEFAULT_SAVE.soundMuted);
+    setSave({ ...DEFAULT_SAVE });
   }, []);
 
   const value = useMemo<GameState>(
@@ -208,6 +216,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       exploredGates: save.exploredGates,
       soundMuted: save.soundMuted,
       musicMuted: save.musicMuted,
+      loaded,
+      profile: save.profile,
+      onboarded: save.onboarded,
+      setProfile,
+      completeOnboarding,
       selectTier,
       completeLevel,
       markGateExplored,
@@ -218,6 +231,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }),
     [
       save,
+      loaded,
+      setProfile,
+      completeOnboarding,
       selectTier,
       completeLevel,
       markGateExplored,

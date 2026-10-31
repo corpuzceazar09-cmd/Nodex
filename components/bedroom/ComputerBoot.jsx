@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useGame } from "@/components/GameProvider";
 
 export default function ComputerBoot({ visible, onComplete }) {
   const router = useRouter();
+  const { onboarded } = useGame();
+  // First boot: PROF. LOGIC is waiting on the computer. After that, straight to the menu.
+  const destination = onboarded ? "/menu" : "/intro";
   const [stage, setStage] = useState(0);
   
   useEffect(() => {
@@ -21,13 +25,13 @@ export default function ComputerBoot({ visible, onComplete }) {
         setStage(4);
         setTimeout(() => {
           if (onComplete) onComplete();
-          router.push("/menu");
+          router.push(destination);
         }, 800);
       }, 2000)
     ];
-    
+
     return () => timers.forEach(t => clearTimeout(t));
-  }, [visible, onComplete, router]);
+  }, [visible, onComplete, router, destination]);
   
   if (!visible) return null;
   

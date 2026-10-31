@@ -192,7 +192,7 @@ export default function DialogueBox({ dialogue = [], currentIndex = 0, onNext, o
       </div>
 
       {/* ---- Dialogue box ---- */}
-      <div role="dialog" aria-modal="true" aria-label="NODEX guide conversation" style={{
+      <div role="dialog" aria-modal="true" aria-label="Conversation with PROF. LOGIC" style={{
         position: "relative", alignSelf: "center", margin: "0 0 22px", width: "min(820px, 94vw)",
         background: "#f4eddb", border: "5px solid #292235", boxShadow: "6px 6px 0 #0c0c14",
         padding: 18, color: "#242031", pointerEvents: "auto"
