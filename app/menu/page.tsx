@@ -27,9 +27,6 @@ export default function MenuPage() {
             <Link href="/tutorial" className={`${ui.button} ${ui.buttonPrimary}`}>
               START
             </Link>
-            <Link href="/bedroom" className={ui.button}>
-              RETURN TO BEDROOM
-            </Link>
             <Link href={continueHref} className={ui.button}>
               CONTINUE
             </Link>
@@ -53,7 +50,7 @@ export default function MenuPage() {
                 SETTINGS
               </Link>
             </div>
-            <Link href="/" className={`${ui.button} text-xs`}>
+            <Link href="/bedroom" className={`${ui.button} text-xs`}>
               EXIT
             </Link>
           </div>
