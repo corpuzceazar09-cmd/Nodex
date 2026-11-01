@@ -14,6 +14,7 @@ import { getLevel, type BlockKind, type Level } from "@/lib/data/levels";
 import { TIERS } from "@/lib/data/tiers";
 import { failureLine, successLine } from "@/lib/data/copy";
 import { getBadge } from "@/lib/gameState";
+import { LEVEL_TOPICS, TOPIC_MAP } from "@/lib/data/topics";
 import { sounds } from "@/lib/sound";
 import { ui } from "@/lib/uiStyles";
 
@@ -43,7 +44,8 @@ export default function LevelPage({
 
 function LevelFlow({ level }: { level: Level }) {
   const router = useRouter();
-  const { xp, streak, completeLevel } = useGame();
+  const { xp, streak, completeLevel, recordAnswer } = useGame();
+  const topicNames = (LEVEL_TOPICS[level.id] ?? []).map((id) => TOPIC_MAP[id]?.name ?? id);
 
   const [phase, setPhase] = useState<Phase>("answering");
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
@@ -130,12 +132,14 @@ function LevelFlow({ level }: { level: Level }) {
   }
 
   function markWrong() {
+    recordAnswer(level.id, false);
     setWrongCount((c) => c + 1);
     sounds.playIncorrect();
     setPhase("wrong");
   }
 
   function award() {
+    recordAnswer(level.id, true);
     const stars = wrongCount === 0 ? 3 : wrongCount === 1 ? 2 : 1;
     const r = completeLevel(level.id, level.tierId, level.rewardXp, stars);
     setResult(r);
@@ -390,6 +394,12 @@ function LevelFlow({ level }: { level: Level }) {
               {failureLine(level.index, tier.subject)}
             </div>
             <p className="text-sm leading-relaxed">{challenge.explanation}</p>
+            {topicNames.length > 0 && (
+              <p className={ui.hint}>
+                TOPIC{topicNames.length > 1 ? "S" : ""} TO REVIEW: {topicNames.join(" · ")} —
+                see <Link href="/progress" className="underline">MY PROGRESS</Link>
+              </p>
+            )}
             <div className="flex w-full gap-3">
               <button
                 className={`${ui.button} flex-1`}

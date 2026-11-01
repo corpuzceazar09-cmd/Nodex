@@ -40,6 +40,8 @@ export type SaveData = {
   profile: PlayerProfile | null;
   /** True once the player has finished PROF. LOGIC's intro on the computer. */
   onboarded: boolean;
+  /** Right / wrong answer counts per learning topic (see lib/data/topics.ts). */
+  topicStats: Record<string, { right: number; wrong: number }>;
 };
 
 export const EMPTY_COMPLETED: CompletedMap = {
@@ -65,6 +67,7 @@ export const DEFAULT_SAVE: SaveData = {
   musicMuted: false,
   profile: null,
   onboarded: false,
+  topicStats: {},
 };
 
 function isTierId(value: unknown): value is TierId {
@@ -99,6 +102,19 @@ function coerceStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
     : [];
+}
+
+function coerceTopicStats(value: unknown): SaveData["topicStats"] {
+  if (!value || typeof value !== "object") return {};
+  const result: SaveData["topicStats"] = {};
+  for (const [id, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!raw || typeof raw !== "object") continue;
+    const { right, wrong } = raw as Record<string, unknown>;
+    if (typeof right === "number" && typeof wrong === "number") {
+      result[id] = { right: Math.max(0, right), wrong: Math.max(0, wrong) };
+    }
+  }
+  return result;
 }
 
 export function coerceProfile(value: unknown): PlayerProfile | null {
@@ -141,6 +157,7 @@ export function migrateSave(raw: unknown): SaveData {
     // Saves from before this field existed belong to players who already went
     // through the intro, so they count as onboarded.
     onboarded: typeof data.onboarded === "boolean" ? data.onboarded : true,
+    topicStats: coerceTopicStats(data.topicStats),
   };
 }
 

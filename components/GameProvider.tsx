@@ -11,6 +11,7 @@ import {
 } from "react";
 import type { TierId } from "@/lib/data/tiers";
 import { GATE_ORDER } from "@/lib/data/gates";
+import { LEVEL_TOPICS } from "@/lib/data/topics";
 import { sounds } from "@/lib/sound";
 import {
   DEFAULT_SAVE,
@@ -46,6 +47,9 @@ type GameState = {
   onboarded: boolean;
   setProfile: (profile: PlayerProfile) => void;
   completeOnboarding: () => void;
+  topicStats: SaveData["topicStats"];
+  /** Count one checked answer toward every topic the level covers. */
+  recordAnswer: (levelId: string, correct: boolean) => void;
   selectTier: (tier: TierId) => void;
   completeLevel: (
     levelId: string,
@@ -97,6 +101,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const clean = coerceProfile(profile);
     if (!clean) return;
     setSave((prev) => ({ ...prev, profile: clean, name: clean.name }));
+  }, []);
+
+  const recordAnswer = useCallback((levelId: string, correct: boolean) => {
+    const topics = LEVEL_TOPICS[levelId];
+    if (!topics?.length) return;
+    setSave((prev) => {
+      const topicStats = { ...prev.topicStats };
+      for (const id of topics) {
+        const stat = topicStats[id] ?? { right: 0, wrong: 0 };
+        topicStats[id] = correct
+          ? { ...stat, right: stat.right + 1 }
+          : { ...stat, wrong: stat.wrong + 1 };
+      }
+      return { ...prev, topicStats };
+    });
   }, []);
 
   const completeOnboarding = useCallback(() => {
@@ -216,6 +235,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       onboarded: save.onboarded,
       setProfile,
       completeOnboarding,
+      topicStats: save.topicStats,
+      recordAnswer,
       selectTier,
       completeLevel,
       markGateExplored,
@@ -229,6 +250,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       loaded,
       setProfile,
       completeOnboarding,
+      recordAnswer,
       selectTier,
       completeLevel,
       markGateExplored,
