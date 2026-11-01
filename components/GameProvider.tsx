@@ -20,9 +20,11 @@ import {
   loadSave,
   saveSave,
   type CompletedMap,
+  type Evaluation,
   type PlayerProfile,
   type SaveData,
 } from "@/lib/storage";
+import type { SurveyResponse, TestKind, TestResult } from "@/lib/data/assessment";
 
 export type CompleteResult = {
   newlyCompleted: boolean;
@@ -50,6 +52,12 @@ type GameState = {
   topicStats: SaveData["topicStats"];
   /** Count one checked answer toward every topic the level covers. */
   recordAnswer: (levelId: string, correct: boolean) => void;
+  evaluation: Evaluation;
+  /** The whole save, read-only — used for the evaluation export. */
+  snapshot: SaveData;
+  setParticipantId: (id: string) => void;
+  saveTestResult: (kind: TestKind, result: TestResult) => void;
+  saveSurvey: (response: SurveyResponse) => void;
   selectTier: (tier: TierId) => void;
   completeLevel: (
     levelId: string,
@@ -212,10 +220,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [save.completed],
   );
 
+  const setParticipantId = useCallback((id: string) => {
+    const participantId = id.trim().slice(0, 24);
+    setSave((prev) => ({ ...prev, evaluation: { ...prev.evaluation, participantId } }));
+  }, []);
+
+  const saveTestResult = useCallback((kind: TestKind, result: TestResult) => {
+    setSave((prev) => ({
+      ...prev,
+      evaluation: { ...prev.evaluation, [kind === "pre" ? "preTest" : "postTest"]: result },
+    }));
+  }, []);
+
+  const saveSurvey = useCallback((response: SurveyResponse) => {
+    setSave((prev) => ({ ...prev, evaluation: { ...prev.evaluation, survey: response } }));
+  }, []);
+
+  // Resetting game progress keeps the study data (test results, survey), so a
+  // participant who restarts the game doesn't erase the researchers' records.
   const resetProgress = useCallback(() => {
     clearSave();
     sounds.setMuted(DEFAULT_SAVE.soundMuted);
-    setSave({ ...DEFAULT_SAVE });
+    setSave((prev) => ({ ...DEFAULT_SAVE, evaluation: prev.evaluation }));
   }, []);
 
   const value = useMemo<GameState>(
@@ -237,6 +263,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       topicStats: save.topicStats,
       recordAnswer,
+      evaluation: save.evaluation,
+      snapshot: save,
+      setParticipantId,
+      saveTestResult,
+      saveSurvey,
       selectTier,
       completeLevel,
       markGateExplored,
@@ -251,6 +282,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setProfile,
       completeOnboarding,
       recordAnswer,
+      setParticipantId,
+      saveTestResult,
+      saveSurvey,
       selectTier,
       completeLevel,
       markGateExplored,

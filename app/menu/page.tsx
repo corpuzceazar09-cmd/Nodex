@@ -42,9 +42,14 @@ export default function MenuPage() {
             <Link href="/lab" className={ui.button}>
               LOGIC GATE LAB
             </Link>
-            <Link href="/progress" className={ui.button}>
-              MY PROGRESS
-            </Link>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href="/progress" className={ui.button}>
+                MY PROGRESS
+              </Link>
+              <Link href="/evaluation" className={ui.button}>
+                EVALUATION
+              </Link>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Link href="/how-to-play" className={ui.button}>
                 HOW TO PLAY

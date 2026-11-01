@@ -2,6 +2,7 @@
 // If an earlier save (from this app or the reference game) already exists, we
 // merge it onto the defaults rather than discarding valid progress.
 
+import type { SurveyResponse, TestResult } from "./data/assessment";
 import type { TierId } from "./data/tiers";
 
 export const SAVE_VERSION = 2;
@@ -42,6 +43,23 @@ export type SaveData = {
   onboarded: boolean;
   /** Right / wrong answer counts per learning topic (see lib/data/topics.ts). */
   topicStats: Record<string, { right: number; wrong: number }>;
+  /** Study data: pre/post-test results and survey answers (lib/data/assessment.ts). */
+  evaluation: Evaluation;
+};
+
+export type Evaluation = {
+  /** Code the researchers assign, e.g. "S-07", so exports needn't carry names. */
+  participantId: string;
+  preTest: TestResult | null;
+  postTest: TestResult | null;
+  survey: SurveyResponse | null;
+};
+
+export const EMPTY_EVALUATION: Evaluation = {
+  participantId: "",
+  preTest: null,
+  postTest: null,
+  survey: null,
 };
 
 export const EMPTY_COMPLETED: CompletedMap = {
@@ -68,6 +86,7 @@ export const DEFAULT_SAVE: SaveData = {
   profile: null,
   onboarded: false,
   topicStats: {},
+  evaluation: EMPTY_EVALUATION,
 };
 
 function isTierId(value: unknown): value is TierId {
@@ -117,6 +136,29 @@ function coerceTopicStats(value: unknown): SaveData["topicStats"] {
   return result;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+/** Keep stored test results / survey answers only if they still look valid. */
+function coerceEvaluation(value: unknown): Evaluation {
+  if (!isRecord(value)) return { ...EMPTY_EVALUATION };
+  const test = (raw: unknown): TestResult | null =>
+    isRecord(raw) && typeof raw.score === "number" && isRecord(raw.answers)
+      ? (raw as TestResult)
+      : null;
+  const survey =
+    isRecord(value.survey) && isRecord(value.survey.ratings)
+      ? (value.survey as SurveyResponse)
+      : null;
+  return {
+    participantId: typeof value.participantId === "string" ? value.participantId : "",
+    preTest: test(value.preTest),
+    postTest: test(value.postTest),
+    survey,
+  };
+}
+
 export function coerceProfile(value: unknown): PlayerProfile | null {
   if (!value || typeof value !== "object") return null;
   const { name, gender } = value as Record<string, unknown>;
@@ -158,6 +200,7 @@ export function migrateSave(raw: unknown): SaveData {
     // through the intro, so they count as onboarded.
     onboarded: typeof data.onboarded === "boolean" ? data.onboarded : true,
     topicStats: coerceTopicStats(data.topicStats),
+    evaluation: coerceEvaluation(data.evaluation),
   };
 }
 
