@@ -32,7 +32,6 @@ export type CompleteResult = {
 type GameState = {
   name: string;
   xp: number;
-  level: number;
   streak: number;
   selectedTier: TierId | null;
   completed: CompletedMap;
@@ -60,11 +59,6 @@ type GameState = {
   isUnlocked: (tierId: TierId, index: number) => boolean;
   resetProgress: () => void;
 };
-
-/** Trivial fake formula: one level per 400 XP. */
-function levelFromXp(xp: number): number {
-  return Math.floor(xp / 400) + 1;
-}
 
 export function levelIdForIndex(tierId: TierId, index: number): string {
   return `${tierId}-${String(index + 1).padStart(2, "0")}`;
@@ -209,7 +203,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     () => ({
       name: save.name,
       xp: save.xp,
-      level: levelFromXp(save.xp),
       streak: save.streak,
       selectedTier: save.selectedTier,
       completed: save.completed,
@@ -253,9 +246,4 @@ export function useGame(): GameState {
   const ctx = useContext(GameContext);
   if (!ctx) throw new Error("useGame must be used inside <GameProvider>");
   return ctx;
-}
-
-/** XP progress (0-100) toward the next level, for the progress bar. */
-export function levelProgressPct(xp: number): number {
-  return Math.round(((xp % 400) / 400) * 100);
 }
