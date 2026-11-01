@@ -36,8 +36,8 @@ export default function MenuPage() {
             <Link href="/sandbox" className={ui.button}>
               BREADBOARD SANDBOX
             </Link>
-            <Link href="/cabling" className={ui.button}>
-              RJ45 CABLING GAME
+            <Link href="/briefing/cabling" className={ui.button}>
+              NETWORK CABLING PATH
             </Link>
             <Link href="/lab" className={ui.button}>
               LOGIC GATE LAB

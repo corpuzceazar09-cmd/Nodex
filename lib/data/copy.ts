@@ -16,12 +16,21 @@ export const FAILURE_LINES = [
   "Missed it — give it another shot!",
 ];
 
+export const CABLING_FAILURE_LINES = [
+  "Almost! Check the pin numbers once more.",
+  "Not quite — but you're close.",
+  "Tricky one! Compare the wire colours on both ends.",
+  "Nope this time. Every technician mixes up a pair now and then.",
+  "Missed it — give it another shot!",
+];
+
 export const LOCKED_TOAST = "LEVEL LOCKED — finish the previous level first!";
 
 export function successLine(index: number): string {
   return SUCCESS_LINES[index % SUCCESS_LINES.length];
 }
 
-export function failureLine(index: number): string {
-  return FAILURE_LINES[index % FAILURE_LINES.length];
+export function failureLine(index: number, subject: "logic" | "cabling" = "logic"): string {
+  const lines = subject === "cabling" ? CABLING_FAILURE_LINES : FAILURE_LINES;
+  return lines[index % lines.length];
 }

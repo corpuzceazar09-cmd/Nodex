@@ -89,6 +89,18 @@ export const BADGES: Badge[] = [
     description: "Constructed or solved a multi-stage combinational circuit.",
     icon: "🏆",
   },
+  {
+    id: "cable_crafter",
+    name: "Cable Crafter",
+    description: "Finished your first Network Cabling level.",
+    icon: "🔗",
+  },
+  {
+    id: "network_ready",
+    name: "Network Ready",
+    description: "Cleared the final challenge of the Cabling path.",
+    icon: "🌐",
+  },
 ];
 
 export const BADGE_MAP: Record<string, Badge> = Object.fromEntries(

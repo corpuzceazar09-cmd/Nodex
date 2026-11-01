@@ -1,7 +1,8 @@
-// 30 mocked levels (10 per tier: 9 regular + 1 final).
-// Every challenge carries a PREDETERMINED correct answer — there is no
-// Boolean evaluator anywhere in this wireframe. Checking is plain equality.
+// 40 levels: 10 per logic tier plus the 10-level cabling path (9 regular + 1
+// final each). Every challenge carries its correct answer; checking is plain
+// equality against it.
 
+import type { CableMode } from "./cabling";
 import type { GateId } from "./gates";
 import type { TierId } from "./tiers";
 
@@ -15,6 +16,8 @@ export type McChallenge = {
   kind: "mc";
   prompt: string;
   visualGate?: GateId;
+  /** Shows both ends of a cable wired as this type (cabling questions). */
+  visualCable?: CableMode;
   choices: string[];
   correct: number;
   explanation: string;
@@ -33,7 +36,24 @@ export type BuildChallenge = {
   explanation: string;
 };
 
-export type Challenge = McChallenge | BuildChallenge;
+/** Put the 8 UTP wires in the right pin order for a wiring standard. */
+export type OrderChallenge = {
+  kind: "order";
+  prompt: string;
+  /** Wire indices (into WIRES) for pins 1–8. */
+  correctOrder: number[];
+  explanation: string;
+};
+
+/** Wire an RJ45 cable end-to-end on the drag-and-drop board. */
+export type WireChallenge = {
+  kind: "wire";
+  prompt: string;
+  mode: CableMode;
+  explanation: string;
+};
+
+export type Challenge = McChallenge | BuildChallenge | OrderChallenge | WireChallenge;
 
 export type Level = {
   id: string;
@@ -343,6 +363,90 @@ const advanced: Challenge[] = [
   },
 ];
 
+// Network cabling path (paper scope: RJ45 connectors, straight-through and
+// crossover cables, modular connectors, wire order and choosing the right cable).
+const cabling: Challenge[] = [
+  {
+    kind: "mc",
+    prompt: "Which connector is crimped onto the ends of an Ethernet (UTP) cable?",
+    choices: ["RJ45", "USB-C", "HDMI"],
+    correct: 0,
+    explanation:
+      "RJ45 is the 8-pin modular plug used on Ethernet cables. USB-C and HDMI carry data and video, not Ethernet.",
+  },
+  {
+    kind: "mc",
+    prompt: "How many wires are inside a Cat5e / Cat6 UTP cable?",
+    choices: ["4", "8", "12"],
+    correct: 1,
+    explanation:
+      "8 wires, twisted into 4 pairs (orange, green, blue, brown) — one wire for each RJ45 pin.",
+  },
+  {
+    kind: "order",
+    prompt: "Put the wires in T568B order, pin 1 to pin 8.",
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7],
+    explanation:
+      "T568B: white-orange, orange, white-green, blue, white-blue, green, white-brown, brown.",
+  },
+  {
+    kind: "mc",
+    prompt: "Compare both ends of this cable. What type of cable is it?",
+    visualCable: "straight",
+    choices: ["Straight-through", "Crossover"],
+    correct: 0,
+    explanation:
+      "Same standard on both ends (T568B to T568B), so every pin goes straight to the same pin: straight-through.",
+  },
+  {
+    kind: "wire",
+    prompt: "Wire a STRAIGHT-THROUGH cable: T568B on both ends.",
+    mode: "straight",
+    explanation: "In a straight-through cable, pin 1 goes to pin 1, pin 2 to pin 2, and so on.",
+  },
+  {
+    kind: "mc",
+    prompt: "Compare both ends of this cable. What type of cable is it now?",
+    visualCable: "crossover",
+    choices: ["Straight-through", "Crossover"],
+    correct: 1,
+    explanation:
+      "The orange and green pairs swap places between the ends (pins 1↔3 and 2↔6), so it's a crossover cable.",
+  },
+  {
+    kind: "mc",
+    prompt: "Which cable connects a PC to a network switch?",
+    choices: ["Straight-through", "Crossover"],
+    correct: 0,
+    explanation:
+      "PC and switch are DIFFERENT kinds of device, so a straight-through cable is used.",
+  },
+  {
+    kind: "mc",
+    prompt:
+      "The socket in a wall plate or patch panel that an RJ45 plug clicks into is called a…",
+    choices: ["Modular jack", "Crimping tool", "Cable tester"],
+    correct: 0,
+    explanation:
+      "A modular (keystone) jack is the female RJ45 socket. The crimper and tester are tools, not connectors.",
+  },
+  {
+    kind: "mc",
+    prompt: "Two PCs are connected directly, with no switch in between. Which cable is needed?",
+    choices: ["Straight-through", "Crossover"],
+    correct: 1,
+    explanation:
+      "PC to PC is the SAME kind of device, so the transmit and receive pairs must cross: crossover.",
+  },
+  {
+    kind: "wire",
+    prompt: "FINAL CHALLENGE: wire a CROSSOVER cable — T568B on the left, T568A on the right.",
+    mode: "crossover",
+    explanation:
+      "Pins 1↔3 and 2↔6 swap; pins 4, 5, 7 and 8 go straight. You've completed the Cabling path!",
+  },
+];
+
 function build(tierId: TierId, challenges: Challenge[]): Level[] {
   return challenges.map((challenge, index) => ({
     id: `${tierId}-${String(index + 1).padStart(2, "0")}`,
@@ -359,6 +463,7 @@ export const LEVELS: Level[] = [
   ...build("newbie", newbie),
   ...build("intermediate", intermediate),
   ...build("advanced", advanced),
+  ...build("cabling", cabling),
 ];
 
 export function getLevel(levelId: string): Level | undefined {

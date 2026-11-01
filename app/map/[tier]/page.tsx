@@ -120,9 +120,20 @@ export default function MapPage({
         </p>
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
-          <Link href="/difficulty" className={`${ui.button} text-xs`}>
-            ◀ CHANGE DIFFICULTY
-          </Link>
+          {t.subject === "cabling" ? (
+            <Link href="/briefing/cabling" className={`${ui.button} text-xs`}>
+              ◀ CABLING BRIEFING
+            </Link>
+          ) : (
+            <Link href="/difficulty" className={`${ui.button} text-xs`}>
+              ◀ CHANGE DIFFICULTY
+            </Link>
+          )}
+          {t.subject === "cabling" && (
+            <Link href="/cabling" className={`${ui.button} text-xs`}>
+              FREE WIRING LAB
+            </Link>
+          )}
           <Link href="/menu" className={`${ui.button} text-xs`}>
             MAIN MENU
           </Link>

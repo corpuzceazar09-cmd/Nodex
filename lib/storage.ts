@@ -47,6 +47,7 @@ export const EMPTY_COMPLETED: CompletedMap = {
   intermediate: [],
   advanced: [],
   circuits: [],
+  cabling: [],
 };
 
 /** Fresh-install save: a brand-new player with no progress. */
@@ -67,7 +68,12 @@ export const DEFAULT_SAVE: SaveData = {
 };
 
 function isTierId(value: unknown): value is TierId {
-  return value === "newbie" || value === "intermediate" || value === "advanced";
+  return (
+    value === "newbie" ||
+    value === "intermediate" ||
+    value === "advanced" ||
+    value === "cabling"
+  );
 }
 
 function coerceCompleted(value: unknown): CompletedMap {
@@ -76,6 +82,7 @@ function coerceCompleted(value: unknown): CompletedMap {
     intermediate: [],
     advanced: [],
     circuits: [],
+    cabling: [],
   };
   if (value && typeof value === "object") {
     for (const key of Object.keys(result) as TierId[]) {

@@ -5,14 +5,22 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import ScreenFrame from "@/components/ScreenFrame";
 import GateSymbol from "@/components/GateSymbol";
+import CableEnds from "@/components/cabling/CableEnds";
+import WireSwatch from "@/components/cabling/WireSwatch";
+import WiringBoard from "@/components/cabling/WiringBoard";
 import { useGame, type CompleteResult } from "@/components/GameProvider";
+import { WIRES } from "@/lib/data/cabling";
 import { getLevel, type BlockKind, type Level } from "@/lib/data/levels";
 import { TIERS } from "@/lib/data/tiers";
 import { failureLine, successLine } from "@/lib/data/copy";
+import { getBadge } from "@/lib/gameState";
 import { sounds } from "@/lib/sound";
 import { ui } from "@/lib/uiStyles";
 
 type Phase = "answering" | "correct" | "wrong" | "reward";
+
+/** Fixed scramble of the 8 wires for "order" levels, so the palette never starts solved. */
+const ORDER_PALETTE = [5, 2, 7, 0, 3, 6, 1, 4];
 
 export default function LevelPage({
   params,
@@ -50,6 +58,10 @@ function LevelFlow({ level }: { level: Level }) {
       ? Array(level.challenge.table.length).fill(null)
       : [],
   );
+  const [orderSlots, setOrderSlots] = useState<(number | null)[]>(() =>
+    level.challenge.kind === "order" ? Array(8).fill(null) : [],
+  );
+  const [pickedWire, setPickedWire] = useState<number | null>(null);
   const [rewarded, setRewarded] = useState(false);
   const [wrongCount, setWrongCount] = useState(0);
   const [result, setResult] = useState<CompleteResult | null>(null);
@@ -79,6 +91,17 @@ function LevelFlow({ level }: { level: Level }) {
     );
   }
 
+  /* ---------- wire-order interactions ---------- */
+
+  function onOrderSlot(index: number) {
+    if (pickedWire !== null) {
+      setOrderSlots((prev) => prev.map((s, i) => (i === index ? pickedWire : s)));
+      setPickedWire(null);
+    } else {
+      setOrderSlots((prev) => prev.map((s, i) => (i === index ? null : s)));
+    }
+  }
+
   /* ---------- answer checking (equality only — no evaluator) ---------- */
 
   const buildComplete =
@@ -94,6 +117,12 @@ function LevelFlow({ level }: { level: Level }) {
       else markWrong();
       return;
     }
+    if (challenge.kind === "order") {
+      if (challenge.correctOrder.every((w, i) => orderSlots[i] === w)) award();
+      else markWrong();
+      return;
+    }
+    if (challenge.kind !== "build") return;
     const slotsOk = challenge.correctSlots.every((b, i) => slots[i] === b);
     const tableOk = challenge.correctTable.every((v, i) => cells[i] === v);
     if (slotsOk && tableOk) award();
@@ -155,6 +184,68 @@ function LevelFlow({ level }: { level: Level }) {
           <div className="flex justify-center border-[3px] border-black bg-white p-3">
             <GateSymbol gate={challenge.visualGate} className="h-24 w-44" />
           </div>
+        )}
+
+        {challenge.kind === "mc" && challenge.visualCable && (
+          <CableEnds mode={challenge.visualCable} />
+        )}
+
+        {challenge.kind === "order" && (
+          <>
+            <p className="text-xs font-black tracking-widest">WIRES</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {ORDER_PALETTE.filter((w) => !orderSlots.includes(w)).map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  className={`${ui.block} gap-2 ${pickedWire === w ? ui.blockSelected : ""}`}
+                  onClick={() => setPickedWire(pickedWire === w ? null : w)}
+                  aria-pressed={pickedWire === w}
+                >
+                  <WireSwatch index={w} className="h-3 w-6" />
+                  {WIRES[w].name}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs font-black tracking-widest">RJ45 PINS</p>
+            <div className="mx-auto grid w-full max-w-md gap-2">
+              {orderSlots.map((w, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`${ui.slot} !min-h-10 justify-start gap-3 px-3 ${w !== null ? ui.slotFilled : ""} ${pickedWire !== null && w === null ? ui.slotTarget : ""}`}
+                  onClick={() => onOrderSlot(i)}
+                >
+                  <span className="w-12 text-left">PIN {i + 1}</span>
+                  {w !== null ? (
+                    <>
+                      <WireSwatch index={w} className="h-3 w-8" />
+                      <span>{WIRES[w].name}</span>
+                    </>
+                  ) : (
+                    <span className="opacity-60">EMPTY</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className={`${ui.hint} text-center`}>
+              TAP A WIRE, THEN TAP A PIN · TAP A FILLED PIN TO CLEAR IT
+            </p>
+            <button
+              className={`${ui.button} ${ui.buttonGreen} mx-auto`}
+              disabled={orderSlots.some((w) => w === null)}
+              onClick={check}
+            >
+              CHECK ▶
+            </button>
+          </>
+        )}
+
+        {challenge.kind === "wire" && (
+          <WiringBoard
+            mode={challenge.mode}
+            onCheck={(allCorrect) => (allCorrect ? award() : markWrong())}
+          />
         )}
 
         {challenge.kind === "mc" && (
@@ -296,7 +387,7 @@ function LevelFlow({ level }: { level: Level }) {
           <div className={`${ui.modal} ${ui.modalWrong}`}>
             <div className="text-3xl font-black">✘ NOT QUITE</div>
             <div className="w-full border-4 border-black bg-[#ff5f5f] p-2 font-black">
-              {failureLine(level.index)}
+              {failureLine(level.index, tier.subject)}
             </div>
             <p className="text-sm leading-relaxed">{challenge.explanation}</p>
             <div className="flex w-full gap-3">
@@ -343,7 +434,7 @@ function LevelFlow({ level }: { level: Level }) {
             {result && result.newBadges.length > 0 && (
               <div className="w-full border-4 border-black bg-[#6fd97f] p-2 text-sm font-black">
                 NEW BADGE{result.newBadges.length > 1 ? "S" : ""}:{" "}
-                {result.newBadges.join(", ")}
+                {result.newBadges.map((id) => getBadge(id)?.name ?? id).join(", ")}
               </div>
             )}
             <button

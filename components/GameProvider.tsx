@@ -167,6 +167,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (completed.advanced.length >= 1 || (completed.circuits?.length ?? 0) >= 1) {
         addBadge("circuit_architect");
       }
+      if ((completed.cabling?.length ?? 0) >= 1) addBadge("cable_crafter");
+      if (completed.cabling?.includes(levelIdForIndex("cabling", 9))) addBadge("network_ready");
       if (stars2 >= 3) addBadge("perfect_circuit");
 
       const badges = earned.length ? [...save.badges, ...earned] : save.badges;

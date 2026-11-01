@@ -16,12 +16,18 @@ export default async function BriefingPage({
   const { tier } = await params;
   if (!isTierId(tier)) redirect("/difficulty");
   const t = TIERS[tier];
+  const cabling = t.subject === "cabling";
 
   return (
     <div className={ui.page}>
-      <ScreenFrame title={`DESCRIPTIONS OF BASIC GATES — ${t.name}`}>
+      <ScreenFrame
+        title={cabling ? "NETWORK CABLING BRIEFING" : `DESCRIPTIONS OF BASIC GATES — ${t.name}`}
+      >
         <p className={`${ui.hint} text-center`}>
-          {t.levelLabel} · These are the gates featured on your level path.
+          {t.levelLabel} ·{" "}
+          {cabling
+            ? "Read these before you start — every card is tested on the path."
+            : "These are the gates featured on your level path."}
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -73,9 +79,20 @@ export default async function BriefingPage({
         </div>
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
-          <Link href="/difficulty" className={`${ui.button} text-xs`}>
-            ◀ CHANGE DIFFICULTY
-          </Link>
+          {cabling ? (
+            <div className="flex flex-wrap gap-3">
+              <Link href="/menu" className={`${ui.button} text-xs`}>
+                ◀ MAIN MENU
+              </Link>
+              <Link href="/cabling" className={`${ui.button} text-xs`}>
+                PRACTICE IN THE WIRING LAB ▶
+              </Link>
+            </div>
+          ) : (
+            <Link href="/difficulty" className={`${ui.button} text-xs`}>
+              ◀ CHANGE DIFFICULTY
+            </Link>
+          )}
           <Link href={`/map/${tier}`} className={`${ui.button} ${ui.buttonPrimary}`}>
             BEGIN LEVEL PATH ▶
           </Link>

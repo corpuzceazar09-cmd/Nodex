@@ -25,10 +25,12 @@ export default function CompletePage({
   if (!valid) return null;
 
   const t = TIERS[tier];
+  // Only the logic tiers chain into each other; the cabling path stands alone.
   const idx = TIER_ORDER.indexOf(tier);
   const nextTier =
-    idx < TIER_ORDER.length - 1 ? TIERS[TIER_ORDER[idx + 1]] : null;
+    idx >= 0 && idx < TIER_ORDER.length - 1 ? TIERS[TIER_ORDER[idx + 1]] : null;
   const lastTier = idx === TIER_ORDER.length - 1;
+  const cabling = t.subject === "cabling";
 
   return (
     <div className={ui.page}>
@@ -41,9 +43,11 @@ export default function CompletePage({
             PATH CLEARED: {t.name}
           </h1>
           <p className="max-w-md leading-relaxed">
-            {lastTier
-              ? "Every tier, every node, every gate — you are a TRUE NODEX!"
-              : `You finished all 10 nodes of the ${t.name} path. The next tier is waiting.`}
+            {cabling
+              ? "Connectors, wire order, straight-through and crossover — you're ready to wire a real network!"
+              : lastTier
+                ? "Every tier, every node, every gate — you are a TRUE NODEX!"
+                : `You finished all 10 nodes of the ${t.name} path. The next tier is waiting.`}
           </p>
 
           <div className="flex flex-wrap justify-center gap-2">
