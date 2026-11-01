@@ -281,16 +281,18 @@ function LevelFlow({ level }: { level: Level }) {
             {/* palette */}
             <div className="flex flex-wrap justify-center gap-2">
               {challenge.palette.map((b) => (
-                <div
+                <button
                   key={b}
+                  type="button"
                   draggable
+                  aria-pressed={picked === b}
                   onDragStart={(e) => e.dataTransfer.setData("text/plain", b)}
                   onClick={() => setPicked(picked === b ? null : b)}
                   className={`${ui.block} ${picked === b ? ui.blockSelected : ""}`}
                   style={{ minWidth: "5rem" }}
                 >
                   {b}
-                </div>
+                </button>
               ))}
             </div>
 
@@ -298,7 +300,9 @@ function LevelFlow({ level }: { level: Level }) {
             <div className="flex flex-wrap items-center justify-center gap-3">
               {slots.map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div
+                  <button
+                    type="button"
+                    aria-label={`Slot ${i + 1}: ${s ? s.toUpperCase() : "empty"}`}
                     className={`${ui.slot} ${s ? ui.slotFilled : ""}`}
                     style={{ minWidth: "6.5rem" }}
                     onClick={() => onSlotClick(i)}
@@ -312,7 +316,7 @@ function LevelFlow({ level }: { level: Level }) {
                     }}
                   >
                     {s ? s.toUpperCase() : `SLOT ${i + 1}`}
-                  </div>
+                  </button>
                   {i < slots.length - 1 && <span className="font-black">→</span>}
                 </div>
               ))}
@@ -335,11 +339,15 @@ function LevelFlow({ level }: { level: Level }) {
                       {row.map((v, j) => (
                         <td key={j}>{v}</td>
                       ))}
-                      <td
-                        className={ui.cellClickable}
-                        onClick={() => cycleCell(i)}
-                      >
-                        {cells[i] === null ? "–" : cells[i]}
+                      <td className={ui.cellClickable}>
+                        <button
+                          type="button"
+                          className="h-full w-full font-bold"
+                          aria-label={`Output for row ${i + 1}: ${cells[i] === null ? "not set" : cells[i]}. Press to change.`}
+                          onClick={() => cycleCell(i)}
+                        >
+                          {cells[i] === null ? "–" : cells[i]}
+                        </button>
                       </td>
                     </tr>
                   ))}

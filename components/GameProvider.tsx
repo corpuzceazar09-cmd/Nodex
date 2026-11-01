@@ -19,6 +19,7 @@ import {
   coerceProfile,
   loadSave,
   saveSave,
+  type AccessibilitySettings,
   type CompletedMap,
   type Evaluation,
   type PlayerProfile,
@@ -52,6 +53,10 @@ type GameState = {
   topicStats: SaveData["topicStats"];
   /** Count one checked answer toward every topic the level covers. */
   recordAnswer: (levelId: string, correct: boolean) => void;
+  accessibility: AccessibilitySettings;
+  setAccessibility: (patch: Partial<AccessibilitySettings>) => void;
+  /** Forget the bedroom character so PROF. LOGIC's introductions play again. */
+  resetIntro: () => void;
   evaluation: Evaluation;
   /** The whole save, read-only — used for the evaluation export. */
   snapshot: SaveData;
@@ -236,12 +241,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setSave((prev) => ({ ...prev, evaluation: { ...prev.evaluation, survey: response } }));
   }, []);
 
-  // Resetting game progress keeps the study data (test results, survey), so a
-  // participant who restarts the game doesn't erase the researchers' records.
+  const setAccessibility = useCallback((patch: Partial<AccessibilitySettings>) => {
+    setSave((prev) => ({ ...prev, accessibility: { ...prev.accessibility, ...patch } }));
+  }, []);
+
+  const resetIntro = useCallback(() => {
+    setSave((prev) => ({ ...prev, profile: null, onboarded: false }));
+  }, []);
+
+  // Apply accessibility settings to the whole page (see globals.css).
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.textSize = save.accessibility.textSize;
+    root.dataset.contrast = save.accessibility.highContrast ? "high" : "normal";
+    root.dataset.motion = save.accessibility.reducedMotion ? "reduced" : "full";
+  }, [save.accessibility]);
+
+  // Resetting game progress keeps the study data (test results, survey) and
+  // accessibility settings, so a participant who restarts the game doesn't
+  // erase the researchers' records or their own reading setup.
   const resetProgress = useCallback(() => {
     clearSave();
     sounds.setMuted(DEFAULT_SAVE.soundMuted);
-    setSave((prev) => ({ ...DEFAULT_SAVE, evaluation: prev.evaluation }));
+    setSave((prev) => ({
+      ...DEFAULT_SAVE,
+      evaluation: prev.evaluation,
+      accessibility: prev.accessibility,
+    }));
   }, []);
 
   const value = useMemo<GameState>(
@@ -263,6 +289,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       topicStats: save.topicStats,
       recordAnswer,
+      accessibility: save.accessibility,
+      setAccessibility,
+      resetIntro,
       evaluation: save.evaluation,
       snapshot: save,
       setParticipantId,
@@ -282,6 +311,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setProfile,
       completeOnboarding,
       recordAnswer,
+      setAccessibility,
+      resetIntro,
       setParticipantId,
       saveTestResult,
       saveSurvey,

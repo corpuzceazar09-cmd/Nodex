@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type PointerEvent } from "react";
+import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { sounds } from "@/lib/sound";
 import { MODE_LABELS, WIRES, WIRE_MAPS, type CableMode } from "@/lib/data/cabling";
 import { ui } from "@/lib/uiStyles";
@@ -27,10 +27,14 @@ const pathFor = (from: Point, to: Point) => {
 const paintFor = (index: number) =>
   WIRES[index].striped ? `url(#cable-stripe-${STRIPE_IDS.indexOf(index)})` : WIRES[index].color;
 
+const isActivateKey = (event: KeyboardEvent) => event.key === "Enter" || event.key === " ";
+
 /**
- * Drag-and-drop RJ45 wiring board: drag each T568B wire from the left plug to
- * a pin on the right plug, then CHECK. Used by the free wiring lab and by the
- * "wire" levels of the cabling path (which grade the result via onCheck).
+ * RJ45 wiring board: drag each T568B wire from the left plug to a pin on the
+ * right plug — or tap/press Enter on a wire, then on a right-side pin — then
+ * CHECK. Wires carry printed labels so they don't rely on colour alone. Used by
+ * the free wiring lab and by the "wire" levels of the cabling path (which grade
+ * the result via onCheck).
  */
 export default function WiringBoard({
   mode,
@@ -46,6 +50,8 @@ export default function WiringBoard({
   const [hoverPin, setHoverPin] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
+  /** Left pin picked by tap or keyboard, waiting for a right-side pin. */
+  const [selected, setSelected] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   const map = WIRE_MAPS[mode];
@@ -60,6 +66,22 @@ export default function WiringBoard({
     setHoverPin(null);
     setChecked(false);
     setHint(null);
+    setSelected(null);
+  }
+  function connect(from: number, to: number) {
+    if (occupied(to)) return;
+    setConnections((prev) => [...prev.filter((c) => c.from !== from), { from, to }]);
+    setSelected(null);
+    setChecked(false);
+    setHint(null);
+    sounds.playSnap();
+  }
+  function selectWire(pin: number) {
+    setChecked(false);
+    setHint(null);
+    setConnections((prev) => prev.filter((c) => c.from !== pin));
+    setSelected((prev) => (prev === pin ? null : pin));
+    sounds.playBtn();
   }
   function beginDrag(event: PointerEvent<SVGCircleElement>, pin: number) {
     if (!svgRef.current) return;
@@ -95,7 +117,11 @@ export default function WiringBoard({
       if (cursor.x >= END_X - 50 && pin >= 1 && pin <= 8 &&
           Math.abs(cursor.y - yFor(pin)) <= 20 && !occupied(pin)) {
         setConnections((prev) => [...prev, { from: drag.from, to: pin }]);
+        setSelected(null);
         sounds.playSnap();
+      } else if (Math.hypot(cursor.x - START_X, cursor.y - yFor(drag.from)) < 20) {
+        // A tap (no real drag) picks the wire; the next tapped right pin takes it.
+        setSelected(drag.from);
       }
     }
     setDrag(null);
@@ -141,10 +167,15 @@ export default function WiringBoard({
             return (
               <g key={pin}>
                 <text x="22" y={yFor(pin) + 5} fontSize="15" textAnchor="middle" fill="#111" fontWeight="bold">{pin}</text>
-                <rect x="53" y={yFor(pin) - 7} width="59" height="14" fill={paint} stroke="#222" strokeWidth="1"><title>{wire.name}</title></rect>
+                <rect x="53" y={yFor(pin) - 9} width="59" height="18" fill={paint} stroke="#222" strokeWidth="1"><title>{wire.name}</title></rect>
+                <text x="81" y={yFor(pin) + 4} fontSize="11" fontWeight="bold" textAnchor="middle" fill="#111" stroke="#fff" strokeWidth="3" paintOrder="stroke" pointerEvents="none">{wire.short}</text>
                 {match && <path d={pathFor({ x: START_X, y: yFor(pin) }, { x: END_X, y: yFor(match.to) })} fill="none" stroke={state === null ? "#292929" : state ? "#228444" : "#d12121"} strokeWidth="12" strokeLinecap="round" opacity=".25" />}
                 {match && <path d={pathFor({ x: START_X, y: yFor(pin) }, { x: END_X, y: yFor(match.to) })} fill="none" stroke={paint} strokeWidth="8" strokeLinecap="round" />}
-                <circle cx={START_X} cy={yFor(pin)} r="13" fill={connected(pin) ? "#d9d9d9" : "#fff"} stroke="#111" strokeWidth="2" onPointerDown={(e) => beginDrag(e, pin)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={() => { setDrag(null); setHoverPin(null); }} style={{ cursor: "grab", touchAction: "none" }} />
+                <circle cx={START_X} cy={yFor(pin)} r="13" fill={selected === pin ? "#6c5ccf" : connected(pin) ? "#d9d9d9" : "#fff"} stroke="#111" strokeWidth={selected === pin ? 4 : 2}
+                  tabIndex={0} role="button" aria-pressed={selected === pin}
+                  aria-label={`Left pin ${pin}, ${wire.name} wire${match ? `, connected to right pin ${match.to}` : ""}`}
+                  onKeyDown={(e) => { if (isActivateKey(e)) { e.preventDefault(); selectWire(pin); } }}
+                  onPointerDown={(e) => beginDrag(e, pin)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={() => { setDrag(null); setHoverPin(null); }} style={{ cursor: "grab", touchAction: "none" }} />
                 <circle cx={START_X} cy={yFor(pin)} r="5" fill={wire.color} pointerEvents="none" />
               </g>
             );
@@ -154,7 +185,15 @@ export default function WiringBoard({
             const used = occupied(pin);
             return (
               <g key={`end-${pin}`}>
-                <circle cx={END_X} cy={yFor(pin)} r={hoverPin === pin ? 15 : 11} fill={hoverPin === pin ? "#8fd86a" : used ? "#bcbcbc" : "white"} stroke="#111" strokeWidth="2" />
+                <circle cx={END_X} cy={yFor(pin)} r={hoverPin === pin ? 15 : 11}
+                  fill={hoverPin === pin ? "#8fd86a" : used ? "#bcbcbc" : selected !== null ? "#e9e5fe" : "white"}
+                  stroke={selected !== null && !used ? "#6c5ccf" : "#111"} strokeWidth={selected !== null && !used ? 3 : 2}
+                  tabIndex={0} role="button"
+                  aria-label={`Right pin ${pin}${used ? ", taken" : ""}`}
+                  aria-disabled={used || selected === null}
+                  onClick={() => { if (selected !== null) connect(selected, pin); }}
+                  onKeyDown={(e) => { if (isActivateKey(e) && selected !== null) { e.preventDefault(); connect(selected, pin); } }}
+                  style={{ cursor: selected !== null && !used ? "pointer" : "default" }} />
                 <text x="798" y={yFor(pin) + 5} fill="#111" fontWeight="bold" fontSize="15" textAnchor="middle">{pin}</text>
               </g>
             );
@@ -163,7 +202,11 @@ export default function WiringBoard({
           <text x="75" y="390" textAnchor="middle" fill="#111" fontSize="14" fontWeight="bold">T568B</text>
           <text x="747" y="390" textAnchor="middle" fill="#111" fontSize="14" fontWeight="bold">{mode === "crossover" ? "T568A" : mode === "straight" ? "T568B" : "REVERSED"}</text>
         </svg>
-        <p className="text-center text-xs text-gray-700">Tip: Drop a wire near a numbered right-side pin. Wires can cross each other.</p>
+        <p className="text-center text-xs text-gray-700">
+          {selected !== null
+            ? `${WIRES[selected - 1].name} picked — now tap (or press Enter on) a right-side pin.`
+            : "Drag a wire to a right-side pin, or tap a wire and then a pin (keyboard: Tab to a pin, press Enter). Wires can cross."}
+        </p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-bold">
         <span>CONNECTED: {connections.length} / 8</span>

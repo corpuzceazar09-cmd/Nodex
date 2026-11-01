@@ -1,18 +1,18 @@
 // Shared RJ45 / UTP data for the free wiring lab and the cabling level path.
 
 export type CableMode = "straight" | "crossover" | "rollover";
-export type Wire = { name: string; color: string; striped: boolean };
+export type Wire = { name: string; short: string; color: string; striped: boolean };
 
 /** The 8 wires in T568B order: index i is the wire on pin i + 1 of a T568B end. */
 export const WIRES: Wire[] = [
-  { name: "WHITE / ORANGE", color: "#ed891b", striped: true },
-  { name: "ORANGE", color: "#ed891b", striped: false },
-  { name: "WHITE / GREEN", color: "#39a94d", striped: true },
-  { name: "BLUE", color: "#4375b8", striped: false },
-  { name: "WHITE / BLUE", color: "#4375b8", striped: true },
-  { name: "GREEN", color: "#39a94d", striped: false },
-  { name: "WHITE / BROWN", color: "#74504b", striped: true },
-  { name: "BROWN", color: "#74504b", striped: false },
+  { name: "WHITE / ORANGE", short: "W/O", color: "#ed891b", striped: true },
+  { name: "ORANGE", short: "O", color: "#ed891b", striped: false },
+  { name: "WHITE / GREEN", short: "W/G", color: "#39a94d", striped: true },
+  { name: "BLUE", short: "BL", color: "#4375b8", striped: false },
+  { name: "WHITE / BLUE", short: "W/BL", color: "#4375b8", striped: true },
+  { name: "GREEN", short: "G", color: "#39a94d", striped: false },
+  { name: "WHITE / BROWN", short: "W/BR", color: "#74504b", striped: true },
+  { name: "BROWN", short: "BR", color: "#74504b", striped: false },
 ];
 
 /** Wire indices (into WIRES) for pins 1–8 of each standard. */

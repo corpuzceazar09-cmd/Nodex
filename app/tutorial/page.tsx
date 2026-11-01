@@ -142,7 +142,9 @@ export default function TutorialPage() {
             <div className="flex flex-wrap items-center justify-center gap-3">
               {slots.map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div
+                  <button
+                    type="button"
+                    aria-label={`Slot ${i + 1}: ${s ? s.toUpperCase() : "empty"}`}
                     className={`${ui.slot} ${s ? ui.slotFilled : ""} ${
                       wrongSlots.includes(i) ? "!border-[#f2867a] !bg-[#fde3df]" : ""
                     } ${phase === "build" && selected && !s ? ui.slotTarget : ""}`}
@@ -156,7 +158,7 @@ export default function TutorialPage() {
                     }}
                   >
                     {s ? s.toUpperCase() : `SLOT ${i + 1}`}
-                  </div>
+                  </button>
                   {i < slots.length - 1 && <span className="font-black">→</span>}
                 </div>
               ))}
@@ -167,16 +169,18 @@ export default function TutorialPage() {
                 {/* palette */}
                 <div className="flex flex-wrap justify-center gap-2">
                   {PALETTE.map((b) => (
-                    <div
+                    <button
                       key={b}
+                      type="button"
                       draggable
+                      aria-pressed={b === selected}
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", b)}
                       onClick={() => onPalette(b)}
                       className={`${ui.block} ${b === selected ? ui.blockSelected : ""}`}
                       style={{ minWidth: "5rem" }}
                     >
                       {b}
-                    </div>
+                    </button>
                   ))}
                 </div>
                 <p className={`${ui.hint} text-center`}>
@@ -214,9 +218,15 @@ export default function TutorialPage() {
                               wrongCells.includes(i) ? "!bg-[#fde3df]" : ""
                             }`}
                             data-output
-                            onClick={() => cycleCell(i)}
                           >
-                            {cells[i] === null ? "–" : cells[i]}
+                            <button
+                              type="button"
+                              className="h-full w-full font-bold"
+                              aria-label={`Output when A is ${row[0]}: ${cells[i] === null ? "not set" : cells[i]}. Press to change.`}
+                              onClick={() => cycleCell(i)}
+                            >
+                              {cells[i] === null ? "–" : cells[i]}
+                            </button>
                           </td>
                         </tr>
                       ))}

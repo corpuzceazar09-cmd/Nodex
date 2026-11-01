@@ -52,7 +52,8 @@ function ToggleRow({
       <button
         className={`${ui.button} w-24 ${value ? ui.buttonGreen : ""}`}
         onClick={onToggle}
-        aria-pressed={!value}
+        aria-pressed={value}
+        aria-label={label}
       >
         {value ? "ON" : "OFF"}
       </button>
@@ -63,10 +64,13 @@ function ToggleRow({
 export default function SettingsPage() {
   const {
     resetProgress,
+    resetIntro,
     soundMuted,
     musicMuted,
     setSoundMuted,
     setMusicMuted,
+    accessibility,
+    setAccessibility,
   } = useGame();
   const [msg, setMsg] = useState<string | null>(null);
   const bedroomTheme = useSyncExternalStore(
@@ -96,6 +100,41 @@ export default function SettingsPage() {
         </p>
 
         <div className="flex flex-col gap-3">
+          <div className="border-[3px] border-black bg-white p-3">
+            <b>TEXT SIZE</b>
+            <p className="mb-3 text-xs opacity-70">Makes all text and buttons bigger.</p>
+            <div className="flex gap-2" role="radiogroup" aria-label="Text size">
+              {(
+                [
+                  ["normal", "NORMAL"],
+                  ["large", "LARGE"],
+                  ["xlarge", "EXTRA LARGE"],
+                ] as const
+              ).map(([size, label]) => (
+                <button
+                  key={size}
+                  role="radio"
+                  aria-checked={accessibility.textSize === size}
+                  className={`${ui.button} flex-1 ${accessibility.textSize === size ? ui.buttonPrimary : ""}`}
+                  onClick={() => setAccessibility({ textSize: size })}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ToggleRow
+            label="HIGH CONTRAST"
+            value={accessibility.highContrast}
+            onToggle={() => setAccessibility({ highContrast: !accessibility.highContrast })}
+            note="Stronger colours and darker helper text."
+          />
+          <ToggleRow
+            label="REDUCE MOTION"
+            value={accessibility.reducedMotion}
+            onToggle={() => setAccessibility({ reducedMotion: !accessibility.reducedMotion })}
+            note="Stops blinking, pulsing and sliding animations. Also follows your device's setting."
+          />
           <div className="border-[3px] border-black bg-white p-3">
             <b>BEDROOM APPEARANCE</b>
             <p className="mb-3 text-xs opacity-70">
@@ -136,7 +175,8 @@ export default function SettingsPage() {
             <b>SAVED PROGRESS</b>
             <p className="mb-3 text-xs opacity-70">
               XP, stars, badges and unlocks are stored locally. Resetting starts
-              a fresh adventure.
+              a fresh adventure (your evaluation answers and accessibility
+              settings are kept).
             </p>
             <button
               className={`${ui.button} ${ui.buttonRed} mb-2 w-full`}
@@ -150,13 +190,11 @@ export default function SettingsPage() {
             <button
               className={`${ui.button} ${ui.buttonRed} w-full`}
               onClick={() => {
-                if (typeof window !== "undefined") {
-                  localStorage.removeItem("nodex_tutorial_completed");
-                  setMsg("TUTORIAL RESET - GO TO BEDROOM!");
-                }
+                resetIntro();
+                setMsg("INTRO RESET — PROF. LOGIC WILL MEET YOU IN THE BEDROOM!");
               }}
             >
-              RESET TUTORIAL
+              REPLAY PROF. LOGIC&apos;S INTRO
             </button>
           </div>
         </div>

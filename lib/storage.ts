@@ -45,6 +45,21 @@ export type SaveData = {
   topicStats: Record<string, { right: number; wrong: number }>;
   /** Study data: pre/post-test results and survey answers (lib/data/assessment.ts). */
   evaluation: Evaluation;
+  accessibility: AccessibilitySettings;
+};
+
+export type TextSize = "normal" | "large" | "xlarge";
+
+export type AccessibilitySettings = {
+  textSize: TextSize;
+  highContrast: boolean;
+  reducedMotion: boolean;
+};
+
+export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
+  textSize: "normal",
+  highContrast: false,
+  reducedMotion: false,
 };
 
 export type Evaluation = {
@@ -87,6 +102,7 @@ export const DEFAULT_SAVE: SaveData = {
   onboarded: false,
   topicStats: {},
   evaluation: EMPTY_EVALUATION,
+  accessibility: DEFAULT_ACCESSIBILITY,
 };
 
 function isTierId(value: unknown): value is TierId {
@@ -159,6 +175,16 @@ function coerceEvaluation(value: unknown): Evaluation {
   };
 }
 
+function coerceAccessibility(value: unknown): AccessibilitySettings {
+  if (!isRecord(value)) return { ...DEFAULT_ACCESSIBILITY };
+  const { textSize } = value;
+  return {
+    textSize: textSize === "large" || textSize === "xlarge" ? textSize : "normal",
+    highContrast: value.highContrast === true,
+    reducedMotion: value.reducedMotion === true,
+  };
+}
+
 export function coerceProfile(value: unknown): PlayerProfile | null {
   if (!value || typeof value !== "object") return null;
   const { name, gender } = value as Record<string, unknown>;
@@ -201,6 +227,7 @@ export function migrateSave(raw: unknown): SaveData {
     onboarded: typeof data.onboarded === "boolean" ? data.onboarded : true,
     topicStats: coerceTopicStats(data.topicStats),
     evaluation: coerceEvaluation(data.evaluation),
+    accessibility: coerceAccessibility(data.accessibility),
   };
 }
 
